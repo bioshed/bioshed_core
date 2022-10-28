@@ -9,6 +9,7 @@ import bioshed_deploy_core
 sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_utils/'))
 import docker_utils
 import aws_batch_utils
+import quick_utils
 sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_atlas/'))
 import atlas_encode_utils
 
@@ -16,6 +17,7 @@ AWS_CONFIG_FILE = os.path.join(INIT_PATH,'aws_config_constants.json')
 PROVIDER_FILE = os.path.join(INIT_PATH, 'hs_providers.tf')
 MAIN_FILE = os.path.join(INIT_PATH, 'main.tf')
 SYSTEM_TYPE = bioshed_core_utils.detect_os()
+VALID_COMMANDS = ['init', 'setup', 'build', 'run', 'runlocal', 'deploy', 'search', 'download', 'teardown']
 
 def bioshed_cli_entrypoint():
     bioshed_cli_main( sys.argv )
@@ -31,7 +33,7 @@ def bioshed_cli_main( args ):
         print('Unsupported system OS. Linux (Ubuntu, Debian, RedHat, AmazonLinux) or Mac OS X currently supported.\n')
     elif len(args) > 1:
         cmd = args[1].strip()
-        if cmd in ['run', 'runlocal']:
+        if cmd in ['run', 'runlocal'] and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('You must specify a module with at least one argument - ex: bioshed run fastqc -h')
                 return
@@ -56,7 +58,7 @@ def bioshed_cli_main( args ):
                 print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
                 docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs))
 
-        elif cmd == 'build':
+        elif cmd == 'build' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('You must specify a module to build: bioshed build <MODULE> <ARGS>')
                 return
@@ -65,16 +67,27 @@ def bioshed_cli_main( args ):
             print('MODULE: '+str(module))
             if 'install' in parsed_args:
                 docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
-        elif cmd == 'init':
+        elif cmd == 'setup' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) > 2:
                 cloud_provider = args[2].lower()
                 if cloud_provider in ['aws', 'amazon']:
-                    bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE, cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE))
+                    bioshed_init.bioshed_setup(dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE))
                 else:
                     print('Provider {} currently not supported.'.format(cloud_provider))
             else:
-                print('Must specify a cloud provider - e.g., bioshed init aws')
-        elif cmd == 'deploy':
+                print('Must specify a cloud provider - e.g., bioshed setup aws')
+        elif cmd == 'init':
+            # ask for login name (email)
+            login_success = bioshed_init.bioshed_login()
+            if login_success["login"]:
+                quick_utils.add_to_json(AWS_CONFIG_FILE, {"login": login_success["user"]})
+                which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE))
+                print('BioShed initial install complete. Follow-up options are:')
+                print('1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.')
+                print('2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.')
+                print('3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.')
+                print('')
+        elif cmd == 'deploy' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Must specify a resource to deploy - e.g., bioshed deploy core\n')
                 return
@@ -83,12 +96,12 @@ def bioshed_cli_main( args ):
             provider = 'aws'
             deploy_option = args[3] if len(args) > 3 else ''
             bioshed_deploy_core.bioshed_deploy_core(dict(cloud_provider=provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, deployoption=deploy_option))
-        elif cmd == 'teardown':
+        elif cmd == 'teardown' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             r = input('You are going to tear down your entire bioshed infrastructure. Are you sure? y/n: ') or "N"
             # have another credential-based check - ask for AWS credentials or some password
             if r.upper() == "Y":
                 bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH))
-        elif cmd == 'search':
+        elif cmd == 'search' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to search and type your search terms. Examples:')
                 print('\tbioshed search encode <SEARCH_TERMS>')
@@ -105,7 +118,7 @@ def bioshed_cli_main( args ):
                 print('Local search coming soon!')
             else:
                 print('Currently supported searches: encode, nbci, local')
-        elif cmd == 'download':
+        elif cmd == 'download' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to download files from. Examples:')
                 print('\tbioshed download encode')
@@ -120,22 +133,30 @@ def bioshed_cli_main( args ):
                 print('Local download coming soon!')
             else:
                 print('Currently supported downloads: encode, nbci, local')
-
+        elif cmd in VALID_COMMANDS and not bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
+            print('Not logged on. Please type "bioshed init" and login first.')
+        else:
+            print_help_menu()
     else:
-        print('Specify a subcommand. Valid subcommands are:\n')
-        print('\t$ bioshed init aws')
-        print('\t$ bioshed deploy core')
-        print('\t$ bioshed teardown aws')
-        print('')
-        print('\t$ bioshed run')
-        print('\t$ bioshed build')
-        print('')
-        print('\t$ bioshed search encode')
-        print('\t$ bioshed search ncbi')
-        print('\t$ bioshed search local')
-        print('')
-        print('\t$ bioshed download encode')
-        print('\t$ bioshed download ncbi')
-        print('\t$ bioshed download local')
-        print('')
+        print_help_menu()
+    return
+
+def print_help_menu():
+    print('Specify a valid subcommand. Valid subcommands are:\n')
+    print('\t$ bioshed init')
+    print('\t$ bioshed setup aws')
+    print('\t$ bioshed deploy core')
+    print('\t$ bioshed teardown aws')
+    print('')
+    print('\t$ bioshed run')
+    print('\t$ bioshed build')
+    print('')
+    print('\t$ bioshed search encode')
+    print('\t$ bioshed search ncbi')
+    print('\t$ bioshed search local')
+    print('')
+    print('\t$ bioshed download encode')
+    print('\t$ bioshed download ncbi')
+    print('\t$ bioshed download local')
+    print('')
     return

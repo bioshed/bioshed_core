@@ -1,5 +1,6 @@
 import os, sys, subprocess, json
 
+SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
 HOME_PATH = os.path.expanduser('~')
 INIT_PATH = os.path.join(HOME_PATH, '.bioshedinit/')
 VALID_REGIONS = ['us-west-2', 'us-west-1', 'us-east-1', 'us-east-2', 'af-south-1', 'ap-east-1', \
@@ -7,6 +8,31 @@ VALID_REGIONS = ['us-west-2', 'us-west-1', 'us-east-1', 'us-east-2', 'af-south-1
                  'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-south-1', 'eu-west-3', 'eu-north-1', \
                  'me-south-1', 'me-central-1', 'se-east-1']
 ECR_PUBLIC_REGISTRY = "public.ecr.aws/w7q0j5w1"
+BIOSHED_SERVERLESS_API = "https://hu9ug76w32.execute-api.us-west-2.amazonaws.com/prod"
+
+sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_utils/'))
+import quick_utils
+
+def userExists( user ):
+    """ Check if username exists in the user database.
+    """
+    mybody = {"user": user}
+    user_exists = quick_utils.post_request(dict(url=BIOSHED_SERVERLESS_API+'/searchusers', body=mybody))
+    if "user_found" in user_exists and str(user_exists["user_found"])[0].upper() == "T":
+        return True
+    else:
+        return False
+
+def bioshed_login():
+    """ Log into BioShed.
+    """
+    myuser = input('Enter your BioShed username (email address): ') or ""
+    user_exists = False
+    if myuser != "":
+        user_exists = userExists(myuser)
+    if not user_exists:
+        print("ERROR: User {} does not exist.".format(str(myuser)))
+    return {"login": False, "user": myuser} if not user_exists else {"login": True, "user": myuser}
 
 def bioshed_init( args ):
     """
@@ -19,26 +45,47 @@ def bioshed_init( args ):
     ---
     provider_file
 
-    [TODO] fix this: Found preexisting AWS CLI installation: /usr/local/aws-cli/v2/current. Please rerun install script with --update flag.
     """
     system_type = args['system']
+    which_os = ''
+
+    if 'ubuntu' in system_type.lower():
+        bioshed_init_ubuntu()
+        which_os = 'ubuntu'
+    elif 'debian' in system_type.lower():
+        bioshed_init_ubuntu()
+        which_os = 'debian'
+    elif 'redhat' in system_type.lower():
+        bioshed_init_redhat()
+        which_os = 'redhat'
+    elif 'macosx' in system_type.lower():
+        bioshed_init_macosx()
+        which_os = 'macosx'
+    elif 'amazon' in system_type.lower():
+        bioshed_init_amazonlinux()
+        which_os = 'amazonlinux'
+    else:
+        print('ERROR: Unsupported system OS - exiting.')
+
+    return which_os
+
+def bioshed_setup( args ):
+    """
+    cloud: aws, gcp,...
+    initpath: path to all init and setup files
+    configfile: config file for important config constants
+    providerfile: TF provider file
+    mainfile: TF main file
+    ---
+    provider_file
+
+    [TODO] fix this: Found preexisting AWS CLI installation: /usr/local/aws-cli/v2/current. Please rerun install script with --update flag.
+    """
     cloud_provider = args['cloud']
     init_path = args['initpath']
     config_file = args['configfile']
     provider_file = args['providerfile']
     main_file = args['mainfile']
-
-    if 'ubuntu' in system_type.lower() or 'debian' in system_type.lower():
-        bioshed_init_ubuntu()
-    elif 'redhat' in system_type.lower():
-        bioshed_init_redhat()
-    elif 'macosx' in system_type.lower():
-        bioshed_init_macosx()
-    elif 'amazon' in system_type.lower():
-        bioshed_init_amazonlinux()
-    else:
-        print('ERROR: Unsupported system OS - exiting.')
-        return ''
 
     if cloud_provider.lower() in ['aws','amazon']:
         bioshed_init_aws()
