@@ -379,7 +379,8 @@ EOF
               aws_security_group.reachable_with_ssh.id
             ]
 
-            ec2_key_pair = var.batch_ec2_key
+            # ec2_key_pair = var.batch_ec2_key
+            ec2_key_pair = aws_key_pair.deployer.id
 
             subnets = [for s in aws_subnet.public_subnets : s.id]
 

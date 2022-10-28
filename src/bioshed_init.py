@@ -134,7 +134,7 @@ def bioshed_setup_aws( args ):
     AWS_CONSTANTS_JSON["ecr_registry"] = ECR_PUBLIC_REGISTRY
     AWS_CONSTANTS_JSON["aws_region"] = AWS_REGION
 
-    PKEY_INPUT = input('Please provide a valid public key for accessing AWS resources (use ssh key-gen): ')
+    PKEY_INPUT = input('(Needed for running stuff on the cloud): Provide a valid public key for accessing AWS resources (in a separate window, type "ssh-keygen" and paste the public key here) or press ENTER to skip for now: ')
     with open(PROVIDER_FILE,'w') as f:
         f.write('terraform {\n')
         f.write('  required_providers {\n')
@@ -151,15 +151,16 @@ def bioshed_setup_aws( args ):
         f.write('}\n')
     with open(MAIN_FILE,'w') as f:
         f.write('\n')
-    with open(KEYS_FILE,'w') as f:
-        f.write(
-        """
-        resource "aws_key_pair" "deployer" {
-          key_name   = "bioshed-managed-key-for-ec2-instances"
-        """
-        )
-        f.write('  public_key = "{}"\n'.format(PKEY_INPUT))
-        f.write('}\n\n')
+    if PKEY_INPUT not in ['',' ',[]]:
+        with open(KEYS_FILE,'w') as f:
+            f.write(
+            """
+            resource "aws_key_pair" "deployer" {
+              key_name   = "bioshed-managed-key-for-ec2-instances"
+            """
+            )
+            f.write('  public_key = "{}"\n'.format(PKEY_INPUT))
+            f.write('}\n\n')
     with open(AWS_CONFIG_FILE,'w') as f:
         json.dump(AWS_CONSTANTS_JSON, f)
     os.chdir(INIT_PATH)

@@ -35,22 +35,25 @@ def bioshed_cli_main( args ):
             if len(args) < 3:
                 print('You must specify a module with at least one argument - ex: bioshed run fastqc -h')
                 return
+            args = args[2:] # don't need to parse "bioshed run/runlocal"
+            dockerargs = ''
             # optional argument is specified
-            if args[2].startswith('--'):
-                if args[2]=='--aws-env-file':
-                    if len(args) < 5:
+            while args[0].startswith('--'):
+                if args[0]=='--aws-env-file':
+                    if len(args) < 2:
                         print('Either did not specify env file or module name - ex: bioshed runlocal --aws-env-file .env fastqc -h')
-                    dockerargs = '--env-file {}'.format(args[3])
-                    args = args[4:]
-            else:
-                dockerargs = ''
-                args = args[2:]
+                    dockerargs = '--env-file {}'.format(args[1])
+                    args = args[2:]
+                elif args[0]=='--local':
+                    cmd = 'runlocal'
+                    args = args[1:]
             module = args[0].strip()
             # run module
             if cmd == 'run':
                 jobinfo = aws_batch_utils.submit_job_awsbatch( dict(name=module, program_args=args))
                 print('SUBMITTED JOB INFO: '+str(jobinfo))
             elif cmd == 'runlocal':
+                print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
                 docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs))
 
         elif cmd == 'build':
