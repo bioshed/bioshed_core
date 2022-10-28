@@ -9,6 +9,8 @@ import bioshed_deploy_core
 sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_utils/'))
 import docker_utils
 import aws_batch_utils
+sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_atlas/'))
+import atlas_encode_utils
 
 AWS_CONFIG_FILE = os.path.join(INIT_PATH,'aws_config_constants.json')
 PROVIDER_FILE = os.path.join(INIT_PATH, 'hs_providers.tf')
@@ -22,6 +24,8 @@ def bioshed_cli_entrypoint():
 def bioshed_cli_main( args ):
     """ Main function for parsing command line arguments and running stuff.
     args: list of command-line args
+
+    [TODO] figure out local search
     """
     if SYSTEM_TYPE == 'unsupported' or SYSTEM_TYPE == 'windows': # until I can support windows
         print('Unsupported system OS. Linux (Ubuntu, Debian, RedHat, AmazonLinux) or Mac OS X currently supported.\n')
@@ -30,6 +34,7 @@ def bioshed_cli_main( args ):
         if cmd in ['run', 'runlocal']:
             if len(args) < 3:
                 print('You must specify a module with at least one argument - ex: bioshed run fastqc -h')
+                return
             # optional argument is specified
             if args[2].startswith('--'):
                 if args[2]=='--aws-env-file':
@@ -49,12 +54,14 @@ def bioshed_cli_main( args ):
                 docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs))
 
         elif cmd == 'build':
-            if len(args) > 2:
-                module = args[2].strip()
-                parsed_args = bioshed_core_utils.parse_build_args( args[3:] )
-                print('MODULE: '+str(module))
-                if 'install' in parsed_args:
-                    docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
+            if len(args) < 3:
+                print('You must specify a module to build: bioshed build <MODULE> <ARGS>')
+                return
+            module = args[2].strip()
+            parsed_args = bioshed_core_utils.parse_build_args( args[3:] )
+            print('MODULE: '+str(module))
+            if 'install' in parsed_args:
+                docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
         elif cmd == 'init':
             if len(args) > 2:
                 cloud_provider = args[2].lower()
@@ -78,9 +85,54 @@ def bioshed_cli_main( args ):
             # have another credential-based check - ask for AWS credentials or some password
             if r.upper() == "Y":
                 bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH))
+        elif cmd == 'search':
+            if len(args) < 3:
+                print('Specify a system or repository to search and type your search terms. Examples:')
+                print('\tbioshed search encode <SEARCH_TERMS>')
+                print('\tbioshed search ncbi <SEARCH_TERMS>')
+                print('\tbioshed search local <SEARCH_TERMS>')
+                return
+            if str(args[2]).lower() == 'encode':
+                search_terms = str(' '.join(args[3:])).strip()
+                print('Searching ENCODE for: {}'.format(search_terms))
+                atlas_encode_utils.search_encode( dict(searchterms=search_terms))
+            elif str(args[2]).lower() == 'ncbi':
+                print('NCBI search coming soon!')
+            elif str(args[2]).lower() == 'local':
+                print('Local search coming soon!')
+            else:
+                print('Currently supported searches: encode, nbci, local')
+        elif cmd == 'download':
+            if len(args) < 3:
+                print('Specify a system or repository to download files from. Examples:')
+                print('\tbioshed download encode')
+                print('\tbioshed download ncbi')
+                print('\tbioshed download local')
+                return
+            if str(args[2]).lower() == 'encode':
+                atlas_encode_utils.download_encode( dict(downloadstr=str(' '.join(args[3:])).strip()))
+            elif str(args[2]).lower() == 'ncbi':
+                print('NCBI download coming soon!')
+            elif str(args[2]).lower() == 'local':
+                print('Local download coming soon!')
+            else:
+                print('Currently supported downloads: encode, nbci, local')
+
     else:
-        print('Specify a subcommand. Valid subcommands are:\n\n')
-        print('$ bioshed init aws\n')
-        print('$ bioshed deploy core\n')
-        print('$ bioshed teardown aws\n')
+        print('Specify a subcommand. Valid subcommands are:\n')
+        print('\t$ bioshed init aws')
+        print('\t$ bioshed deploy core')
+        print('\t$ bioshed teardown aws')
+        print('')
+        print('\t$ bioshed run')
+        print('\t$ bioshed build')
+        print('')
+        print('\t$ bioshed search encode')
+        print('\t$ bioshed search ncbi')
+        print('\t$ bioshed search local')
+        print('')
+        print('\t$ bioshed download encode')
+        print('\t$ bioshed download ncbi')
+        print('\t$ bioshed download local')
+        print('')
     return
