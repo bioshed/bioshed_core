@@ -47,7 +47,12 @@ def bioshed_init( args ):
 
     """
     system_type = args['system']
+    init_path = args['initpath']
     which_os = ''
+
+    # first create init directory if doesn't exist
+    if not os.path.exists(init_path):
+        os.mkdir(init_path)
 
     if 'ubuntu' in system_type.lower():
         bioshed_init_ubuntu()
@@ -208,8 +213,9 @@ def bioshed_setup_aws( args ):
             )
             f.write('  public_key = "{}"\n'.format(PKEY_INPUT))
             f.write('}\n\n')
-    with open(AWS_CONFIG_FILE,'w') as f:
-        json.dump(AWS_CONSTANTS_JSON, f)
+    quick_utils.add_to_json( AWS_CONFIG_FILE, AWS_CONSTANTS_JSON)
+    # with open(AWS_CONFIG_FILE,'w') as f:
+    #     json.dump(AWS_CONSTANTS_JSON, f)
     os.chdir(INIT_PATH)
     # initialize terraform
     subprocess.call('terraform init', shell=True)

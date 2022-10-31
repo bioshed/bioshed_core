@@ -1,0 +1,1 @@
+BioShed still in beta. Code is proprietary for now. No official license yet.

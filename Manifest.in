@@ -1,0 +1,3 @@
+include bioshed_utils/*.json
+include bioshed_utils/*.yaml
+include bioshed_atlas/files/*.txt

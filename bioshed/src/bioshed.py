@@ -3,6 +3,7 @@ SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
 HOME_PATH = os.path.expanduser('~')
 INIT_PATH = os.path.join(HOME_PATH, '.bioshedinit/')
 
+sys.path.append(os.path.join(SCRIPT_DIR))
 import bioshed_core_utils
 import bioshed_init
 import bioshed_deploy_core
@@ -77,11 +78,18 @@ def bioshed_cli_main( args ):
             else:
                 print('Must specify a cloud provider - e.g., bioshed setup aws')
         elif cmd == 'init':
+            # first create init directory if doesn't exist
+            if not os.path.exists(INIT_PATH):
+                os.mkdir(INIT_PATH)
+            # create config file if doesn't exist
+            if not os.path.exists(AWS_CONFIG_FILE):
+                with open(AWS_CONFIG_FILE,'w') as fout:
+                    fout.write('{}')
             # ask for login name (email)
             login_success = bioshed_init.bioshed_login()
             if login_success["login"]:
                 quick_utils.add_to_json(AWS_CONFIG_FILE, {"login": login_success["user"]})
-                which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE))
+                which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE, initpath=INIT_PATH))
                 print('BioShed initial install complete. Follow-up options are:')
                 print('1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.')
                 print('2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.')

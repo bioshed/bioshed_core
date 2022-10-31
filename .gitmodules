@@ -4,3 +4,9 @@
 [submodule "src/bioshed_atlas"]
 	path = src/bioshed_atlas
 	url = https://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@github.com/bioshed/bioshed_atlas
+[submodule "bioshed/src/bioshed_atlas"]
+	path = bioshed/src/bioshed_atlas
+	url = https://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@github.com/bioshed/bioshed_atlas
+[submodule "bioshed/src/bioshed_utils"]
+	path = bioshed/src/bioshed_utils
+	url = https://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@github.com/bioshed/bioshed_utils
