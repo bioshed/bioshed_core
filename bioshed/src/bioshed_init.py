@@ -117,7 +117,7 @@ def bioshed_init_amazonlinux():
     subprocess.call('sudo yum -y install terraform', shell=True)
 
     # make sure terraform works
-    subprocess.call('terraform -help', shell=True)
+    # subprocess.call('terraform -help', shell=True)
     return
 
 def bioshed_init_redhat():
@@ -131,7 +131,7 @@ def bioshed_init_redhat():
     subprocess.call('sudo yum -y install terraform', shell=True)
 
     # make sure terraform works
-    subprocess.call('terraform -help', shell=True)
+    # subprocess.call('terraform -help', shell=True)
     return
 
 def bioshed_init_ubuntu():
@@ -151,7 +151,7 @@ def bioshed_init_ubuntu():
     subprocess.call('pip install boto3', shell=True)
 
     # make sure terraform works
-    subprocess.call('terraform -help', shell=True)
+    # subprocess.call('terraform -help', shell=True)
     return
 
 def bioshed_init_aws():
