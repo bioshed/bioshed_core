@@ -51,7 +51,9 @@ def bioshed_cli_main( args ):
                     args = args[2:]
                 elif args[0]=='--local':
                     cmd = 'runlocal'
-                    args = args[1:]
+                    # when running locally, files in current directory get passed into /input/ dir of container
+                    args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=os.getcwd()))
+                    # args = args[1:]
                 elif args[0]=='--inputdir':
                     if len(args) < 2:
                         print('You need to specify an input directory.')
