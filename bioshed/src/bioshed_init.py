@@ -148,7 +148,7 @@ def bioshed_init_ubuntu():
     subprocess.call('sudo apt-get install terraform', shell=True)
 
     # boto3 for python-based infra control
-    subprocess.call('pip install boto3', shell=True)
+    # subprocess.call('pip install boto3', shell=True)
 
     # make sure terraform works
     # subprocess.call('terraform -help', shell=True)

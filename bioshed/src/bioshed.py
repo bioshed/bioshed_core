@@ -29,6 +29,7 @@ def bioshed_cli_main( args ):
     args: list of command-line args
 
     [TODO] figure out local search
+    [TODO] add docker installation to "pip install bioshed"
     """
     if SYSTEM_TYPE == 'unsupported' or SYSTEM_TYPE == 'windows': # until I can support windows
         print('Unsupported system OS. Linux (Ubuntu, Debian, RedHat, AmazonLinux) or Mac OS X currently supported.\n')
@@ -45,11 +46,16 @@ def bioshed_cli_main( args ):
                 if args[0]=='--aws-env-file':
                     if len(args) < 2:
                         print('Either did not specify env file or module name - ex: bioshed runlocal --aws-env-file .env fastqc -h')
-                    dockerargs = '--env-file {}'.format(args[1])
+                    dockerargs += '--env-file {} '.format(args[1])
                     args = args[2:]
                 elif args[0]=='--local':
                     cmd = 'runlocal'
                     args = args[1:]
+                elif args[0]=='--inputdir':
+                    if len(args) < 2:
+                        print('You need to specify an input directory.')
+                    dockerargs += '-v {}:/input/ '.format(args[1])
+                    args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
             module = args[0].strip()
             # run module
             if cmd == 'run':
