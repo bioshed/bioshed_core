@@ -52,7 +52,12 @@ def bioshed_cli_main( args ):
                 elif args[0]=='--local':
                     cmd = 'runlocal'
                     # when running locally, files in current directory get passed into /input/ dir of container
-                    args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=os.getcwd()))
+                    current_dir = str(os.getcwd()).replace(' ','\ ')
+                    dockerargs += '-v {}:/input/ '.format(current_dir)
+                    args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=current_dir))
+                    # if no cloud bucket is specified, then output to local.
+                    if 's3://' not in quick_utils.format_type(args, 'space-str') and 'gcp://' not in quick_utils.format_type(args, 'space-str'):
+                        dockerargs += '-v {}:/output/ '.format(current_dir)
                     # args = args[1:]
                 elif args[0]=='--inputdir':
                     if len(args) < 2:
@@ -68,6 +73,7 @@ def bioshed_cli_main( args ):
                 jobinfo = aws_batch_utils.submit_job_awsbatch( dict(name=module, program_args=args))
                 print('SUBMITTED JOB INFO: '+str(jobinfo))
             elif cmd == 'runlocal':
+                print('TOTAL COMMAND: {} | {}'.format(str(dockerargs), str(args)))
                 print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
                 docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs))
 
