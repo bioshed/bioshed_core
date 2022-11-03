@@ -235,3 +235,48 @@ def bioshed_teardown( args ):
     subprocess.call('terraform apply -destroy', shell=True)
     os.chdir(cwd)
     return
+
+def bioshed_run_help():
+    """ Help menu for bioshed run.
+    """
+    print("""
+    Run bioinformatics applications with BioShed.
+    BioShed allows you to run applications as you would normally.
+    Since BioShed is integrated with your cloud environment, you can specify remote file paths.
+
+    Usage:
+        bioshed run <optional:CONFIG-ARGS> <MODULE> <PROGRAM-ARGS>
+
+    Examples using AWS cloud storage:
+        $ bioshed run fastqc s3://folder1/seq.fastq.gz
+        $ bioshed run bwa mem s3://genomes/bwa_index s3://folder1/seq.fastq.gz out://s3://alignments/
+        $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
+
+    Examples using local storage:
+        $ bioshed run --local --aws-env-file .env --inputdir /home/fastq/ zcat /input/my.fastq.gz
+        $ bioshed run --local --inputdir /home/jerry/ cat /input/README.txt
+
+    Examples using hybrid environment:
+        $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
+
+    Output:
+        bioshed.run.out                 All text printed to the console (STDOUT)
+        program.cat.<TIMESTAMP>.1.log   Log file of program output
+        run.<TIMESTAMP>.log             Run log JSON
+        out::<OUTPUT_FOLDER>            Output folder for all log and data files.
+
+    optional CONFIG-ARGS:
+        --local                Run application on local system. Requires docker to be installed.
+        --aws-env-file <.ENV>  AWS environment file with the following format:
+                                 AWS_ACCESS_KEY_ID=[ID]
+                                 AWS_SECRET_ACCESS_KEY=[KEY]
+                                 AWS_DEFAULT_REGION=[region]
+        --inputdir <DIR>       Full path of local input directory. Requires --local
+
+    PROGRAM-ARGS:
+        out::<OUTPUT_FOLDER>   Output folder for all log and data files. Specify full remote path.
+                               You can also specify full local path if --local option is on.
+                               Without this option, files are output back to the input path.
+        /input/<FILE>          When using --local and --inputdir options, prefix any local files located in --inputdir with /input/
+
+    """)

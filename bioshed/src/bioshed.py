@@ -38,6 +38,7 @@ def bioshed_cli_main( args ):
         if cmd in ['run', 'runlocal'] and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('You must specify a module with at least one argument - ex: bioshed run fastqc -h')
+                print('Type: "bioshed run --help" for full documentation.')
                 return
             args = args[2:] # don't need to parse "bioshed run/runlocal"
             dockerargs = ''
@@ -56,7 +57,10 @@ def bioshed_cli_main( args ):
                         print('You need to specify an input directory.')
                     dockerargs += '-v {}:/input/ '.format(args[1])
                     args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
-            module = args[0].strip()
+                elif args[0]=='--help':
+                    bioshed_init.bioshed_run_help()
+                    return
+            module = args[0].strip().lower()
             # run module
             if cmd == 'run':
                 jobinfo = aws_batch_utils.submit_job_awsbatch( dict(name=module, program_args=args))
