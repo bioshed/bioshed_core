@@ -102,22 +102,27 @@ def bioshed_init_macosx():
     # install pip
     # subprocess.call('brew install brew-pip', shell=True)
     # install terraform
-    subprocess.call('brew tap hashicorp/tap', shell=True)
-    subprocess.call('brew install hashicorp/tap/terraform', shell=True)
+    if int(subprocess.call('terraform --help')) != 0:
+        subprocess.call('brew tap hashicorp/tap', shell=True)
+        subprocess.call('brew install hashicorp/tap/terraform', shell=True)
+    if int(subprocess.call('docker --help')) != 0:
+        subproess.call('brew cask install docker', shell=True)
     return
 
 def bioshed_init_amazonlinux():
     # install pip
     subprocess.call('sudo yum -y update', shell=True)
     subprocess.call('sudo yum -y install python3-pip zip unzip', shell=True)
+    subprocess.call('sudo yum install -y yum-utils', shell=True)
 
     # install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started
-    subprocess.call('sudo yum install -y yum-utils', shell=True)
-    subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo', shell=True)
-    subprocess.call('sudo yum -y install terraform', shell=True)
+    if int(subprocess.call('terraform --help')) != 0:
+        subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo', shell=True)
+        subprocess.call('sudo yum -y install terraform', shell=True)
 
-    # make sure terraform works
-    # subprocess.call('terraform -help', shell=True)
+    # install docker
+    if int(subprocess.call('docker --help')) != 0:
+        subprocess.call('sudo yum install docker', shell=True)
     return
 
 def bioshed_init_redhat():
@@ -130,8 +135,9 @@ def bioshed_init_redhat():
     subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo', shell=True)
     subprocess.call('sudo yum -y install terraform', shell=True)
 
-    # make sure terraform works
-    # subprocess.call('terraform -help', shell=True)
+    # install docker
+    if int(subprocess.call('docker --help')) != 0:
+        subprocess.call('sudo yum install docker', shell=True)
     return
 
 def bioshed_init_ubuntu():
@@ -150,8 +156,11 @@ def bioshed_init_ubuntu():
     # boto3 for python-based infra control
     # subprocess.call('pip install boto3', shell=True)
 
-    # make sure terraform works
-    # subprocess.call('terraform -help', shell=True)
+    # install docker
+    if int(subprocess.call('docker --help')) != 0:
+        subprocess.call('sudo apt-get install -y docker.io', shell=True)
+        subprocess.call('sudo snap install docker', shell=True)
+    
     return
 
 def bioshed_init_aws():
