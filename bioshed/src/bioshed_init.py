@@ -267,7 +267,7 @@ def bioshed_run_help():
     Examples using local storage:
         $ bioshed run --local --aws-env-file .env --inputdir /home/fastq/ zcat /input/my.fastq.gz
         $ bioshed run --local --inputdir . cat /input/README.txt
-        $ bioshed run --local fastqc --help
+        $ bioshed run fastqc --help
 
     Examples using hybrid environment:
         $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
@@ -292,5 +292,14 @@ def bioshed_run_help():
                                You can also specify full local path if --local option is on.
                                Without this option, files are output back to the input path.
         /input/<FILE>          When using --local and --inputdir options, prefix any local files located in --inputdir with /input/
+
+    HELP:
+        For help on how to run an application module, type one of the following:
+        $ bioshed run <MODULE> --help
+        $ bioshed run <MODULE> --example
+
+        Examples:
+        $ bioshed run fastqc --help     Shows help menu for FASTQC - output to local file "bioshed.run.out"
+        $ bioshed run fastqc --example  Shows an example of running FASTQC - output to local file "bioshed.run.out"
 
     """)

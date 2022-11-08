@@ -31,7 +31,8 @@ def bioshed_cli_main( args ):
     [TODO] figure out local search
     [TODO] add docker installation to "pip install bioshed"
     """
-    ogargs = args
+    ogargs = quick_utils.format_type(args, 'space-str')       # original arguments
+
     if SYSTEM_TYPE == 'unsupported' or SYSTEM_TYPE == 'windows': # until I can support windows
         print('Unsupported system OS. Linux (Ubuntu, Debian, RedHat, AmazonLinux) or Mac OS X currently supported.\n')
     elif len(args) > 1:
@@ -41,6 +42,17 @@ def bioshed_cli_main( args ):
                 print('You must specify a module with at least one argument - ex: bioshed run fastqc -h')
                 print('Type: "bioshed run --help" for full documentation.')
                 return
+
+            # special case: CMD --example -> always run locally
+            if args[-1] == '--example':
+                if cmd == 'run' and '--local' not in args:
+                    args = args[0:2] + ['--local'] + args[2:-1]
+
+            # special case: CMD --help -> always run locally
+            if args[-1] == '--help' and len(args) > 3 and args[-2] not in ['run', 'runlocal']:
+                if cmd == 'run' and '--local' not in args:
+                    args = args[0:2] + ['--local'] + args[2:]
+
             args = args[2:] # don't need to parse "bioshed run/runlocal"
             dockerargs = ''
             # optional argument is specified
@@ -72,6 +84,11 @@ def bioshed_cli_main( args ):
                     bioshed_init.bioshed_run_help()
                     return
             module = args[0].strip().lower()
+
+            # special case: CMD --example
+            if ogargs.endswith('--example'):
+                args = ['cat', '/example.txt']
+
             # run module
             if cmd == 'run':
                 jobinfo = aws_batch_utils.submit_job_awsbatch( dict(name=module, program_args=args))
