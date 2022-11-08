@@ -266,7 +266,8 @@ def bioshed_run_help():
 
     Examples using local storage:
         $ bioshed run --local --aws-env-file .env --inputdir /home/fastq/ zcat /input/my.fastq.gz
-        $ bioshed run --local cat /input/README.txt
+        $ bioshed run --local --inputdir . cat /input/README.txt
+        $ bioshed run --local fastqc --help
 
     Examples using hybrid environment:
         $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
@@ -285,7 +286,6 @@ def bioshed_run_help():
                                  AWS_SECRET_ACCESS_KEY=[KEY]
                                  AWS_DEFAULT_REGION=[region]
         --inputdir <DIR>       Full path of local input directory. Requires --local.
-                               If no input dir is specified, then the current local directory is used as the input directory.
 
     PROGRAM-ARGS:
         out::<OUTPUT_FOLDER>   Output folder for all log and data files. Specify full remote path.

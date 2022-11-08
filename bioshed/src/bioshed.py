@@ -31,6 +31,7 @@ def bioshed_cli_main( args ):
     [TODO] figure out local search
     [TODO] add docker installation to "pip install bioshed"
     """
+    ogargs = args
     if SYSTEM_TYPE == 'unsupported' or SYSTEM_TYPE == 'windows': # until I can support windows
         print('Unsupported system OS. Linux (Ubuntu, Debian, RedHat, AmazonLinux) or Mac OS X currently supported.\n')
     elif len(args) > 1:
@@ -53,15 +54,18 @@ def bioshed_cli_main( args ):
                     cmd = 'runlocal'
                     # when running locally, files in current directory get passed into /input/ dir of container
                     current_dir = str(os.getcwd()).replace(' ','\ ')
-                    dockerargs += '-v {}:/input/ '.format(current_dir)
+                    #if '--inputdir' not in ogargs:
+                    #    dockerargs += '-v {}:/input/ '.format(current_dir)
                     args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=current_dir))
                     # if no cloud bucket is specified, then output to local.
                     if 's3://' not in quick_utils.format_type(args, 'space-str') and 'gcp://' not in quick_utils.format_type(args, 'space-str'):
-                        dockerargs += '-v {}:/output/ '.format(current_dir)
+                        dockerargs += '-v {}:/output/:Z '.format(current_dir)
                     # args = args[1:]
                 elif args[0]=='--inputdir':
                     if len(args) < 2:
                         print('You need to specify an input directory.')
+                    if args[1] == '.':
+                        args[1] = '$(pwd)'
                     dockerargs += '-v {}:/input/ '.format(args[1])
                     args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
                 elif args[0]=='--help':
