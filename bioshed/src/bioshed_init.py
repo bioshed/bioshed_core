@@ -162,7 +162,7 @@ def bioshed_init_ubuntu():
     # install docker
     if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo apt-get install -y docker.io', shell=True)
-        subprocess.call('sudo snap install docker', shell=True)
+        # subprocess.call('sudo snap install docker', shell=True)
 
     return
 
