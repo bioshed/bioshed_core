@@ -99,10 +99,13 @@ def bioshed_setup( args ):
 
 def bioshed_init_macosx():
     # first make sure brew is installed: https://brew.sh/
-    # install pip
-    # subprocess.call('brew install brew-pip', shell=True)
+    # to install pip: subprocess.call('brew install brew-pip', shell=True)
     # install terraform
-    if int(subprocess.call('terraform --help')) != 0:
+    if int(subprocess.call('brew --help', shell=True)) != 0:
+        subprocess.call('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"', shell=True)
+        # brew update ?
+        # brew upgrade ?
+    if int(subprocess.call('terraform --help', shell=True)) != 0:
         subprocess.call('brew tap hashicorp/tap', shell=True)
         subprocess.call('brew install hashicorp/tap/terraform', shell=True)
     if int(subprocess.call('docker --help')) != 0:
@@ -116,12 +119,12 @@ def bioshed_init_amazonlinux():
     subprocess.call('sudo yum install -y yum-utils', shell=True)
 
     # install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started
-    if int(subprocess.call('terraform --help')) != 0:
+    if int(subprocess.call('terraform --help', shell=True)) != 0:
         subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo', shell=True)
         subprocess.call('sudo yum -y install terraform', shell=True)
 
     # install docker
-    if int(subprocess.call('docker --help')) != 0:
+    if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo yum install docker', shell=True)
     return
 
@@ -136,7 +139,7 @@ def bioshed_init_redhat():
     subprocess.call('sudo yum -y install terraform', shell=True)
 
     # install docker
-    if int(subprocess.call('docker --help')) != 0:
+    if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo yum install docker', shell=True)
     return
 
@@ -157,10 +160,10 @@ def bioshed_init_ubuntu():
     # subprocess.call('pip install boto3', shell=True)
 
     # install docker
-    if int(subprocess.call('docker --help')) != 0:
+    if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo apt-get install -y docker.io', shell=True)
         subprocess.call('sudo snap install docker', shell=True)
-    
+
     return
 
 def bioshed_init_aws():
