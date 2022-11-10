@@ -2,6 +2,7 @@ import os, sys, json
 SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
 HOME_PATH = os.path.expanduser('~')
 INIT_PATH = os.path.join(HOME_PATH, '.bioshedinit/')
+BIOCONTAINERS_REGISTRY = 'public.ecr.aws/biocontainers'
 
 sys.path.append(os.path.join(SCRIPT_DIR))
 import bioshed_core_utils
@@ -55,6 +56,8 @@ def bioshed_cli_main( args ):
 
             args = args[2:] # don't need to parse "bioshed run/runlocal"
             dockerargs = ''
+            registry = ''
+            ctag = ''
             # optional argument is specified
             while args[0].startswith('--'):
                 if args[0]=='--aws-env-file':
@@ -78,15 +81,32 @@ def bioshed_cli_main( args ):
                         print('You need to specify an input directory.')
                     if args[1] == '.':
                         args[1] = '$(pwd)'
-                    dockerargs += '-v {}:/input/ '.format(args[1])
-                    args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
+                    if 'biocontainers' not in ogargs:
+                        dockerargs += '-v {}:/input/ '.format(args[1])
+                        args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
+                    else:
+                        # special case: biocontainers
+                        dockerargs += '-v {}:/data/ '.format(args[1])
                 elif args[0]=='--help':
                     bioshed_init.bioshed_run_help()
                     return
             module = args[0].strip().lower()
 
+            # special case: biocontainers
+            if module.lower() == 'biocontainers':
+                if len(args) < 2:
+                    print('You must specify a biocontainer image.')
+                    print('Example: bioshed run biocontainers blast:2.2.31')
+                    return
+                module = str(args[1].split(':')[0]).strip().lower()
+                registry = BIOCONTAINERS_REGISTRY
+                ctag = str(args[1].split(':')[1]) if len(args[1].split(':')) > 1 else 'latest'
+                args = args[2:]
+                cmd = 'runlocal'  # biocontainers can only be run locally
+                if '-v' not in dockerargs and ':/data' not in dockerargs and '--inputdir' not in ogargs:
+                    dockerargs += '-v $(pwd):/data/ '
             # special case: CMD --example
-            if ogargs.endswith('--example'):
+            elif ogargs.endswith('--example'):
                 args = ['cat', '/example.txt']
 
             # run module
@@ -96,7 +116,7 @@ def bioshed_cli_main( args ):
             elif cmd == 'runlocal':
                 print('TOTAL COMMAND: {} | {}'.format(str(dockerargs), str(args)))
                 print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
-                docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs))
+                docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs, registry=registry, tag=ctag))
 
         elif cmd == 'build' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:

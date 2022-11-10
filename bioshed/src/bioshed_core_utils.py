@@ -22,6 +22,8 @@ def detect_os():
             which_os = 'ubuntu'
         elif 'redhat' in which_version or 'redhat' in which_platform or 'redhat' in which_release:
             which_os = 'redhat'
+        elif 'centos' in which_version or 'centos' in which_platform or 'centos' in which_release:
+            which_os = 'centos'
         elif 'amzn' in which_version or 'amzn' in which_platform or 'amzn' in which_release:
             which_os = 'amazonlinux'
         else:

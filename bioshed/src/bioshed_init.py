@@ -63,6 +63,9 @@ def bioshed_init( args ):
     elif 'redhat' in system_type.lower():
         bioshed_init_redhat()
         which_os = 'redhat'
+    elif 'centos' in system_type.lower():
+        bioshed_init_redhat()
+        which_os = 'centos'
     elif 'macosx' in system_type.lower():
         bioshed_init_macosx()
         which_os = 'macosx'
