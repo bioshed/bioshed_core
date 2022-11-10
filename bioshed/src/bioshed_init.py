@@ -306,3 +306,21 @@ def bioshed_run_help():
         $ bioshed run fastqc --example  Shows an example of running FASTQC - output to local file "bioshed.run.out"
 
     """)
+
+def biocontainers_help():
+    """ Help menu for bioshed run biocontainers.
+    """
+    print("""
+    BioShed allows you to run BioContainers without knowing details about Docker.
+
+    To run a basic biocontainer, type (for example):
+    $ bioshed run biocontainers blast:2.2.31 makeblastdb --help
+
+    The basic format is:
+    $ bioshed run biocontainers <IMAGE>:<TAG> <COMMAND>
+
+    You must know the image name and tag of the biocontainer you want to run.
+    For more information, refer to the Biocontainers documentation at:
+    https://biocontainers.pro/
+    
+    """)

@@ -50,7 +50,7 @@ def bioshed_cli_main( args ):
                     args = args[0:2] + ['--local'] + args[2:-1]
 
             # special case: CMD --help -> always run locally
-            if args[-1] == '--help' and len(args) > 3 and args[-2] not in ['run', 'runlocal']:
+            if args[-1] == '--help' and len(args) > 3 and args[-2] not in ['run', 'runlocal'] and 'biocontainers' not in ogargs:
                 if cmd == 'run' and '--local' not in args:
                     args = args[0:2] + ['--local'] + args[2:]
 
@@ -94,9 +94,8 @@ def bioshed_cli_main( args ):
 
             # special case: biocontainers
             if module.lower() == 'biocontainers':
-                if len(args) < 2:
-                    print('You must specify a biocontainer image.')
-                    print('Example: bioshed run biocontainers blast:2.2.31')
+                if len(args) < 2 or args[-1] == '--help':
+                    bioshed_init.biocontainers_help()
                     return
                 module = str(args[1].split(':')[0]).strip().lower()
                 registry = BIOCONTAINERS_REGISTRY
