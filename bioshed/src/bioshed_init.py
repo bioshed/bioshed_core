@@ -171,10 +171,11 @@ def bioshed_init_ubuntu():
 
 def bioshed_init_aws():
     # install aws cli and configure
-    subprocess.call('pip install awscli', shell=True)
-    subprocess.call('curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"', shell=True)
-    subprocess.call('unzip awscliv2.zip', shell=True)
-    subprocess.call('sudo ./aws/install', shell=True)
+    if int(subprocess.call('aws --help', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)) > 3:
+        subprocess.call('pip install awscli', shell=True)
+        subprocess.call('curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"', shell=True)
+        subprocess.call('unzip awscliv2.zip', shell=True)
+        subprocess.call('sudo ./aws/install', shell=True)
     subprocess.call('aws configure', shell=True)
 
 def bioshed_setup_aws( args ):
