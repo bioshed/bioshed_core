@@ -54,6 +54,10 @@ def bioshed_cli_main( args ):
                 if cmd == 'run' and '--local' not in args:
                     args = args[0:2] + ['--local'] + args[2:]
 
+            # special case: if no cloud provider is fully setup, then run locally
+            if not bioshed_init.cloud_configured({}):
+                args = args[0:2] + ['--local'] + args[2:]
+
             args = args[2:] # don't need to parse "bioshed run/runlocal"
             dockerargs = ''
             registry = ''

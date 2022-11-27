@@ -251,6 +251,25 @@ def bioshed_teardown( args ):
     os.chdir(cwd)
     return
 
+def cloud_configured( args ):
+    """ Checks if a cloud provider is configured properly
+
+    cloud: which cloud provider to check. If empty, then check all.
+    ---
+    boolean: True/False if cloud is configured or not
+    """
+    cloud = args['cloud'] if 'cloud' in args else 'all'
+    pnum = 127
+    if cloud in ['aws','amazon','all']:
+        pnum = min(int(subprocess.call('aws s3 ls', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)), pnum)
+    if cloud in ['gcp','all']:
+        pnum = min(int(subprocess.call('gcp --help', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)), pnum)
+
+    if pnum > 3:
+        return False
+    else:
+        return True
+
 def bioshed_run_help():
     """ Help menu for bioshed run.
     """
@@ -322,5 +341,5 @@ def biocontainers_help():
     You must know the image name and tag of the biocontainer you want to run.
     For more information, refer to the Biocontainers documentation at:
     https://biocontainers.pro/
-    
+
     """)
