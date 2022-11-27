@@ -103,7 +103,7 @@ def bioshed_setup( args ):
         if setup_again.upper()[0] == 'Y':
             bioshed_init_aws()
             api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file))
-            provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file))
+            provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file, keyfile=api_key_file))
     return provider_file
 
 def bioshed_init_macosx():
