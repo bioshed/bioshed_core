@@ -1,4 +1,4 @@
-import os, sys, subprocess, json
+import os, sys, subprocess, json, uuid
 
 SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
 HOME_PATH = os.path.expanduser('~')
@@ -94,10 +94,16 @@ def bioshed_setup( args ):
     config_file = args['configfile']
     provider_file = args['providerfile']
     main_file = args['mainfile']
+    setup_again = 'Y'
 
     if cloud_provider.lower() in ['aws','amazon']:
-        bioshed_init_aws()
-        provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file))
+        cloud_provider = 'aws'
+        if cloud_setup( dict(cloud=cloud_provider, configfile=config_file) ):
+            setup_again = PKEY_INPUT = input('Detected existing setup. Overwrite? (Y/N): ') or 'N'
+        if setup_again.upper()[0] == 'Y':
+            bioshed_init_aws()
+            api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file))
+            provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file))
     return provider_file
 
 def bioshed_init_macosx():
@@ -184,6 +190,7 @@ def bioshed_setup_aws( args ):
     configfile: config file for important config constants
     providerfile: TF provider file
     mainfile: TF main file
+    keyfile: API key file
     ---
     """
     # setup terraform provider (AWS): https://learn.hashicorp.com/tutorials/terraform/aws-build
@@ -191,6 +198,7 @@ def bioshed_setup_aws( args ):
     INIT_PATH = args['initpath']
     if not os.path.exists(INIT_PATH):
         os.mkdir(INIT_PATH)
+    apikeyfile = args['keyfile'] if 'keyfile' in args else ''
     PROVIDER_FILE = args['providerfile'] # os.path.join(INIT_PATH, 'hs_providers.tf')
     MAIN_FILE = args['mainfile'] # os.path.join(INIT_PATH, 'main.tf')
     AWS_CONFIG_FILE = args['configfile']
@@ -202,7 +210,11 @@ def bioshed_setup_aws( args ):
     AWS_CONSTANTS_JSON["ecr_registry"] = ECR_PUBLIC_REGISTRY
     AWS_CONSTANTS_JSON["aws_region"] = AWS_REGION
 
-    PKEY_INPUT = input('(Needed for running stuff on the cloud): Provide a valid public key for accessing AWS resources (in a separate window, type "ssh-keygen" and paste the public key here) or press ENTER to skip for now: ')
+    if keyfile == '':
+        PKEY_INPUT = input('Provide a valid public key for accessing AWS resources (in a separate window, type "bioshed keygen aws" or type "ssh-keygen" and paste the public key here). Press ENTER to skip if not using AWS resources: ')
+    else:
+        PKEY_INPUT = get_public_key( dict(configfile=AWS_CONFIG_FILE))
+
     with open(PROVIDER_FILE,'w') as f:
         f.write('terraform {\n')
         f.write('  required_providers {\n')
@@ -229,6 +241,7 @@ def bioshed_setup_aws( args ):
             )
             f.write('  public_key = "{}"\n'.format(PKEY_INPUT))
             f.write('}\n\n')
+    AWS_CONSTANTS_JSON['setup'] = 'True'
     quick_utils.add_to_json( AWS_CONFIG_FILE, AWS_CONSTANTS_JSON)
     # with open(AWS_CONFIG_FILE,'w') as f:
     #     json.dump(AWS_CONSTANTS_JSON, f)
@@ -252,6 +265,26 @@ def bioshed_teardown( args ):
     os.chdir(cwd)
     return
 
+def cloud_setup( args ):
+    """ Checks if cloud provider already setup in Bioshed. (bioshed setup [cloud])
+    Assumes that config file has a key 'setup = True' or 'setup' = 'Yes' if setup properly.
+
+    cloud: which cloud provider
+    configfile: config file for cloud provider
+    ---
+    boolean: True/False is cloud setup already?
+
+    """
+    isSetup = False
+    cloud = args['cloud'] if 'cloud'in args else 'aws'
+    configfile = args['configfile'] if 'configfile' in args else ''
+    if os.path.exists(configfile):
+        config_json = quick_utils.loadJSON(configfile)
+        is_cloud_setup = config_json['setup'] if 'setup' in config_json else 'False'
+        if is_cloud_setup.upper()[0] in ['T','Y']:
+            isSetup = True
+    return isSetup
+
 def cloud_configured( args ):
     """ Checks if a cloud provider is configured properly
 
@@ -270,6 +303,57 @@ def cloud_configured( args ):
         return False
     else:
         return True
+
+def generate_api_key( args ):
+    """ Generates an API key for a cloud provider.
+
+    cloud: which cloud provider to generate key for.
+    configfile: cloud provider config file
+    ---
+    keyfile: name of generated public key file
+
+    """
+    cloud = args['cloud'] if 'cloud' in args else 'aws'
+    configfile = args['configfile'] if 'configfile' in args else ''
+    CONFIG_JSON = {}
+    unique_key_id = str(uuid.uuid4())[0:4]
+    keyfile = os.path.join(INIT_PATH, 'bioshed_{}_{}'.format(cloud, unique_key_id))
+    while os.path.exists(keyfile):
+        # in the rare event that key with unique id already exists, generate a new one
+        unique_key_id = str(uuid.uuid4())[0:4]
+        keyfile = os.path.join(INIT_PATH, 'bioshed_{}_{}'.format(cloud, unique_key_id))
+    if configfile != '':
+        # generate a new public/private key pair for cloud API.
+        rcode = subprocess.call("ssh-keygen -t rsa -N '' {}".format(keyfile), shell=True)
+        CONFIG_JSON['apikeyfile'] = keyfile
+        if int(rcode) == 0:
+            print('Public/private key generated at {}'.format(keyfile))
+        # reference key file name within config file
+        quick_utils.add_to_json( configfile, CONFIG_JSON)
+    else:
+        print('ERROR: No key generated. Must specify a cloud config file.')
+    return keyfile
+
+def get_public_key( args ):
+    """ Gets public key for a given key file specified within config file.
+
+    configfile: config file where key file name is stored
+    ---
+    pubkey: public key
+    """
+    configfile = args['configfile']
+    keyfile = ''
+    pubkey = ''
+
+    if os.path.exists(configfile):
+        configjson = quick_utils.loadJSON(configfile)
+        keyfile = configjson['apikeyfile']
+    if keyfile != '' and os.path.exists(keyfile+'.pub'):
+        with open(keyfile+'.pub','r') as f:
+            # takes last line as key
+            for r in f:
+                pubkey = r.strip()
+    return pubkey
 
 def bioshed_run_help():
     """ Help menu for bioshed run.

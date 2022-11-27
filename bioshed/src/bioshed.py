@@ -16,10 +16,12 @@ sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_atlas/'))
 import atlas_encode_utils
 
 AWS_CONFIG_FILE = os.path.join(INIT_PATH,'aws_config_constants.json')
+GCP_CONFIG_FILE = ''
 PROVIDER_FILE = os.path.join(INIT_PATH, 'hs_providers.tf')
 MAIN_FILE = os.path.join(INIT_PATH, 'main.tf')
 SYSTEM_TYPE = bioshed_core_utils.detect_os()
-VALID_COMMANDS = ['init', 'setup', 'build', 'run', 'runlocal', 'deploy', 'search', 'download', 'teardown']
+VALID_COMMANDS = ['init', 'setup', 'build', 'run', 'runlocal', 'deploy', 'search', 'download', 'teardown', 'keygen']
+VALID_PROVIDERS = ['aws', 'amazon', 'gcp', 'google']
 
 def bioshed_cli_entrypoint():
     bioshed_cli_main( sys.argv )
@@ -203,6 +205,20 @@ def bioshed_cli_main( args ):
                 print('Local download coming soon!')
             else:
                 print('Currently supported downloads: encode, nbci, local')
+        elif cmd == 'keygen' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
+            if len(args) < 3 or (len(args) >=3 and str(args[2]).lower() not in VALID_PROVIDERS):
+                print('Specify a valid cloud provider to generate an API key for.')
+                print('\tbioshed keygen aws')
+                print('\tbioshed keygen gcp')
+                return
+            if str(args[2]).lower() in ['aws', 'amazon']:
+                key_file = bioshed_init.generate_api_key( dict(cloud='aws', configfile=AWS_CONFIG_FILE))
+                print_key = bioshed_init.get_public_key( dict(configfile=AWS_CONFIG_FILE))
+                print(print_key)
+            elif str(args[2]).lower() in ['gcp', 'google']:
+                key_file = bioshed_init.generate_api_key( dict(cloud='gcp', configfile=GCP_CONFIG_FILE))
+                print_key = bioshed_init.get_public_key( dict(configfile=AWS_CONFIG_FILE))
+                print(print_key)
         elif cmd in VALID_COMMANDS and not bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             print('Not logged on. Please type "bioshed init" and login first.')
         else:
@@ -217,6 +233,7 @@ def print_help_menu():
     print('\t$ bioshed setup aws')
     print('\t$ bioshed deploy core')
     print('\t$ bioshed teardown aws')
+    print('\t$ bioshed keygen aws')
     print('')
     print('\t$ bioshed run')
     print('\t$ bioshed build')
