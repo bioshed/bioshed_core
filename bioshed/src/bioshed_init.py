@@ -210,7 +210,7 @@ def bioshed_setup_aws( args ):
     AWS_CONSTANTS_JSON["ecr_registry"] = ECR_PUBLIC_REGISTRY
     AWS_CONSTANTS_JSON["aws_region"] = AWS_REGION
 
-    if keyfile == '':
+    if apikeyfile == '':
         PKEY_INPUT = input('Provide a valid public key for accessing AWS resources (in a separate window, type "bioshed keygen aws" or type "ssh-keygen" and paste the public key here). Press ENTER to skip if not using AWS resources: ')
     else:
         PKEY_INPUT = get_public_key( dict(configfile=AWS_CONFIG_FILE))
