@@ -448,6 +448,7 @@ EOF
     quick_utils.add_to_json( configfile, dict(aws_ecr_role='arn:aws:iam::{}:instance-profile/bioshed_ecs_instance_role'.format(aws_id), \
                                               aws_ecs_job_role='arn:aws:iam::{}:role/bioshed_ecs_batch_service_role'.format(aws_id), \
                                               jobqueue='bioshed-managed_batch_job_queue_public', \
-                                              working_dir='/home'))
+                                              working_dir='/home',
+                                              core_setup='True'))
 
     return

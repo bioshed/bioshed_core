@@ -104,6 +104,11 @@ def bioshed_setup( args ):
             bioshed_init_aws()
             api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file))
             provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file, keyfile=api_key_file))
+            print('\nBioShed AWS integration setup successful! To setup the core AWS resources, now type:')
+            print('\t$ bioshed deploy core')
+            print('\n Or try one of the following to test your setup:')
+            print('\t$ bioshed run fastqc --help')
+            print('\t$ bioshed run fastqc --example')
     return provider_file
 
 def bioshed_init_macosx():
@@ -303,6 +308,22 @@ def cloud_configured( args ):
         return False
     else:
         return True
+
+def cloud_core_setup( args ):
+    """ Checks if cloud core is setup (i.e., bioshed deploy core) has been run).
+
+    configfile: config file for core setup.
+    ---
+    boolean: True/False if cloud is configured or not
+    """
+    isCoreSetup = False
+    configfile = args['configfile'] if 'configfile' in args else ''
+    if configfile!='' and os.path.exists(configfile):
+        config_json = quick_utils.loadJSON(configfile)
+        is_core_setup = config_json['core_setup'] if 'core_setup' in config_json else 'N'
+    if is_core_setup.upper()[0] in ['Y','T']:
+        isCoreSetup = True
+    return isCoreSetup
 
 def generate_api_key( args ):
     """ Generates an API key for a cloud provider.
