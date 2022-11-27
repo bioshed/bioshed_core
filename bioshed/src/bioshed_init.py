@@ -324,7 +324,7 @@ def generate_api_key( args ):
         keyfile = os.path.join(INIT_PATH, 'bioshed_{}_{}'.format(cloud, unique_key_id))
     if configfile != '':
         # generate a new public/private key pair for cloud API.
-        rcode = subprocess.call("ssh-keygen -t rsa -N '' {}".format(keyfile), shell=True)
+        rcode = subprocess.call("ssh-keygen -t rsa -N '' -f {}".format(keyfile), shell=True)
         CONFIG_JSON['apikeyfile'] = keyfile
         if int(rcode) == 0:
             print('Public/private key generated at {}'.format(keyfile))
