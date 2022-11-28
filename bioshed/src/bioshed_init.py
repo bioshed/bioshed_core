@@ -390,7 +390,7 @@ def generate_api_key( args ):
     keyfile: name of generated public key file
 
     [NOTE] https://stackoverflow.com/questions/43235179/how-to-execute-ssh-keygen-without-prompt
-    
+
     """
     cloud = args['cloud'] if 'cloud' in args else 'aws'
     configfile = args['configfile'] if 'configfile' in args else ''
@@ -457,6 +457,7 @@ def bioshed_run_help():
 
     Examples using hybrid environment:
         $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
+        $ bioshed run fastqc s3://bioshed-examples/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz out::local
 
     Output:
         bioshed.run.out                 All text printed to the console (STDOUT)
@@ -464,6 +465,7 @@ def bioshed_run_help():
         run.<TIMESTAMP>.log             Run log JSON
         out::<OUTPUT_FOLDER>            Output folder for all log and data files.
                                         If no output folder is specified, then the input folder is used as the output folder.
+                                        You can explicitly specify local by "out::local"
 
     optional CONFIG-ARGS:
         --local                Run application on local system. Requires docker to be installed.
