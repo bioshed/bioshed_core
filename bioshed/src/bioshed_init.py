@@ -295,17 +295,19 @@ def write_env_file( args ):
             credfile = os.path.join(HOME_PATH,'.aws/credentials')
             if os.path.exists(credfile):
                 with open(credfile,'r') as f:
-                    r = f.readline()
-                    print(r)
-                    if 'aws_access_key_id' in r and current_group == group:
-                        access_key = str(r.strip().split('=')[-1]).strip()
-                    elif 'aws_secret_access_key' in r and current_group == group:
-                        secret_key = str(r.strip().split('=')[-1]).strip()
-                    elif '[' in r and ']' in r:
-                        if group in r:
-                            current_group = group
-                        else:
-                            current_group = ''
+                    r = 'start'
+                    while r != '':
+                        r = f.readline()
+                        print(r)
+                        if 'aws_access_key_id' in r and current_group == group:
+                            access_key = str(r.strip().split('=')[-1]).strip()
+                        elif 'aws_secret_access_key' in r and current_group == group:
+                            secret_key = str(r.strip().split('=')[-1]).strip()
+                        elif '[' in r and ']' in r:
+                            if group in r:
+                                current_group = group
+                            else:
+                                current_group = ''
             with open(envfile,'w') as fout:
                 fout.write('AWS_ACCESS_KEY_ID={}\n'.format(access_key))
                 fout.write('AWS_SECRET_ACCESS_KEY={}\n'.format(secret_key))
