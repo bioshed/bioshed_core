@@ -116,7 +116,7 @@ def bioshed_cli_main( args ):
             # special case: CMD --example
             elif ogargs.endswith('--example'):
                 args = ['cat', '/example.txt']
-            # special case: fastqc - need to explicitly specify output directory
+            # special case: e.g., fastqc - need to explicitly specify output directory
             elif module.lower() in ['fastqc']:
                 args = [args[0]] + ['-o', '/output/'] + args[1:]
             # run module
