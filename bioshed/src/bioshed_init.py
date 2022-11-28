@@ -389,6 +389,8 @@ def generate_api_key( args ):
     ---
     keyfile: name of generated public key file
 
+    [NOTE] https://stackoverflow.com/questions/43235179/how-to-execute-ssh-keygen-without-prompt
+    
     """
     cloud = args['cloud'] if 'cloud' in args else 'aws'
     configfile = args['configfile'] if 'configfile' in args else ''
