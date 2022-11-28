@@ -282,6 +282,7 @@ def write_env_file( args ):
     """
     cloud = args['cloud'] if 'cloud' in args else 'aws'
     initpath = args['initpath'] if 'initpath' in args else ''
+    HOME_PATH = os.path.expanduser('~')
     group = args['group'] if 'group' in args else 'default'
     envfile = os.path.join(initpath,'.env_{}'.format(cloud))
     credfile = ''
@@ -290,7 +291,7 @@ def write_env_file( args ):
     current_group = ''
     if initpath != '' and os.path.exists(initpath) and not os.path.exists(envfile):
         if cloud in ['aws','amazon']:
-            credfile = '$HOME/.aws/credentials'
+            credfile = os.path.join(HOME_PATH,'.aws/credentials')
             if os.path.exists(credfile):
                 with open(credfile,'r') as f:
                     r = f.readline()
