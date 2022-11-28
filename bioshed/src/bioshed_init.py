@@ -290,7 +290,7 @@ def write_env_file( args ):
     secret_key = ''
     current_group = ''
     print('IN WRITE ENV FILE')
-    if initpath != '' and os.path.exists(initpath) and not os.path.exists(envfile):
+    if initpath != '' and os.path.exists(initpath):
         if cloud in ['aws','amazon']:
             credfile = os.path.join(HOME_PATH,'.aws/credentials')
             if os.path.exists(credfile):
