@@ -118,7 +118,7 @@ def bioshed_cli_main( args ):
                 args = ['cat', '/example.txt']
             # special case: fastqc - need to explicitly specify output directory
             elif module.lower() in ['fastqc']:
-                args = ['-o', '/output/'] + args
+                args = args[0] + ['-o', '/output/'] + args[1:]
             # run module
             if cmd == 'run':
                 jobinfo = aws_batch_utils.submit_job_awsbatch( dict(name=module, program_args=args))
