@@ -213,8 +213,8 @@ def bioshed_setup_aws( args ):
     MAIN_FILE = args['mainfile'] # os.path.join(INIT_PATH, 'main.tf')
     AWS_CONFIG_FILE = args['configfile']
     KEYS_FILE = os.path.join(INIT_PATH, 'hsconfig.tf')
-    AWS_REGION = input('Which region do you want to setup your bioshed infrastructure?\n1: us-west-1 (california)\n2: us-west-2 (oregon) COMMONLY USED\n3: us-east-1 (virginia) COMMONLY USED\n4: us-east-2 (ohio)\n5: ap-south-1 (india) COMMONLY USED\n6: ap-northeast-1 (tokyo)\n7: ap-northeast-2 (seoul)\n8: ap-southeast-1 (singapore)\n9: ca-central-1 (canada)\n10: eu-west-1 (ireland) COMMONLY USED\n11: eu-west-2 (london)\n12: eu-west-3 (paris)\n13: eu-central-1 (germany)\n\nType a number or a region name: ')
-    if AWS_REGION not in VALID_REGIONS and AWS_REGION not in VALID_REGION_NUMBERS:
+    AWS_REGION = input('Which region do you want to setup your bioshed infrastructure?\n1: us-west-1 (california)\n2: us-west-2 (oregon) - COMMONLY USED\n3: us-east-1 (virginia) - COMMONLY USED\n4: us-east-2 (ohio)\n5: ap-south-1 (india) - COMMONLY USED\n6: ap-northeast-1 (tokyo)\n7: ap-northeast-2 (seoul)\n8: ap-southeast-1 (singapore)\n9: ca-central-1 (canada)\n10: eu-west-1 (ireland) - COMMONLY USED\n11: eu-west-2 (london)\n12: eu-west-3 (paris)\n13: eu-central-1 (germany)\n\nType a number or a region name: ')
+    while AWS_REGION not in VALID_REGIONS and AWS_REGION not in VALID_REGION_NUMBERS:
         AWS_REGION = input('Please type a valid number or AWS region (default: us-west-2): ') or "us-west-2"
     if AWS_REGION in VALID_REGION_NUMBERS:
         AWS_REGION = VALID_REGION_NUMBERS[AWS_REGION]
