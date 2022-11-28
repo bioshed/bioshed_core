@@ -8,8 +8,8 @@ VALID_REGIONS = ['us-west-2', 'us-west-1', 'us-east-1', 'us-east-2', 'af-south-1
                  'ca-central-1', 'eu-central-1', 'eu-west-1', 'eu-west-2', 'eu-south-1', 'eu-west-3', 'eu-north-1', \
                  'me-south-1', 'me-central-1', 'se-east-1']
 VALID_REGION_NUMBERS = {'1': 'us-west-1', '2': 'us-west-2', '3': 'us-east-1', '4': 'us-east-2', '5': 'ap-south-1', \
-                        '6': 'ap-northeast-1', '7': 'ap-northeast-2', '8': 'ap-southeast-1', '9': 'ca-central-1', '10': 'eu-west-2', \
-                        '11': 'eu-west-3', '12': 'eu-central-1'}
+                        '6': 'ap-northeast-1', '7': 'ap-northeast-2', '8': 'ap-southeast-1', '9': 'ca-central-1', '10': 'eu-west-1', '11': 'eu-west-2', \
+                        '12': 'eu-west-3', '13': 'eu-central-1'}
 
 ECR_PUBLIC_REGISTRY = "public.ecr.aws/w7q0j5w1"
 BIOSHED_SERVERLESS_API = "https://hu9ug76w32.execute-api.us-west-2.amazonaws.com/prod"
@@ -213,7 +213,7 @@ def bioshed_setup_aws( args ):
     MAIN_FILE = args['mainfile'] # os.path.join(INIT_PATH, 'main.tf')
     AWS_CONFIG_FILE = args['configfile']
     KEYS_FILE = os.path.join(INIT_PATH, 'hsconfig.tf')
-    AWS_REGION = input('Which region do you want to setup your bioshed infrastructure?\n1: us-west-1 (oregon)\n2: us-west-2 (california)\n3: us-east-1 (virginia)\n4: us-east-2 (ohio)\n5: ap-south-1 (india)\n6: ap-northeast-1 (tokyo)\n7: ap-northeast-2 (seoul)\n8: ap-southeast-1 (singapore)\n9: ca-central-1 (canada)\n10: eu-west-2 (london)\n11: eu-west-3 (paris)\n12:eu-central-1 (germany)\nType a number or a region name: ')
+    AWS_REGION = input('Which region do you want to setup your bioshed infrastructure?\n1: us-west-1 (california)\n2: us-west-2 (oregon) COMMONLY USED\n3: us-east-1 (virginia) COMMONLY USED\n4: us-east-2 (ohio)\n5: ap-south-1 (india) COMMONLY USED\n6: ap-northeast-1 (tokyo)\n7: ap-northeast-2 (seoul)\n8: ap-southeast-1 (singapore)\n9: ca-central-1 (canada)\n10: eu-west-1 (ireland) COMMONLY USED\n11: eu-west-2 (london)\n12: eu-west-3 (paris)\n13: eu-central-1 (germany)\n\nType a number or a region name: ')
     if AWS_REGION not in VALID_REGIONS and AWS_REGION not in VALID_REGION_NUMBERS:
         AWS_REGION = input('Please type a valid number or AWS region (default: us-west-2): ') or "us-west-2"
     if AWS_REGION in VALID_REGION_NUMBERS:
