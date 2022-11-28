@@ -14,6 +14,7 @@ import aws_batch_utils
 import quick_utils
 sys.path.append(os.path.join(SCRIPT_DIR, 'bioshed_atlas/'))
 import atlas_encode_utils
+import atlas_tcga_utils
 
 AWS_CONFIG_FILE = os.path.join(INIT_PATH,'aws_config_constants.json')
 GCP_CONFIG_FILE = ''
@@ -182,28 +183,36 @@ def bioshed_cli_main( args ):
             if len(args) < 3:
                 print('Specify a system or repository to search and type your search terms. Examples:')
                 print('\tbioshed search encode <SEARCH_TERMS>')
+                print('\tbioshed search gdc <SEARCH_TERMS>')
+                print('\tbioshed search tcga <SEARCH_TERMS>')
                 print('\tbioshed search ncbi <SEARCH_TERMS>')
-                print('\tbioshed search local <SEARCH_TERMS>')
                 return
             if str(args[2]).lower() == 'encode':
                 search_terms = str(' '.join(args[3:])).strip()
                 print('Searching ENCODE for: {}'.format(search_terms))
                 atlas_encode_utils.search_encode( dict(searchterms=search_terms))
+            elif str(args[2]).lower() in ['tcga', 'gdc']:
+                search_terms = str(' '.join(args[3:])).strip()
+                print('Searching Genomic Data Commons for: {}'.format(search_terms))
+                atlas_tcga_utils.search_gdc( dict(searchterms=search_terms))
             elif str(args[2]).lower() == 'ncbi':
                 print('NCBI search coming soon!')
             elif str(args[2]).lower() == 'local':
                 print('Local search coming soon!')
             else:
-                print('Currently supported searches: encode, nbci, local')
+                print('Currently supported searches: encode, tcga, gdc. Coming soon: nbci, local')
         elif cmd == 'download' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to download files from. Examples:')
                 print('\tbioshed download encode')
+                print('\tbioshed download gdc')
+                print('\tbioshed download tcga')
                 print('\tbioshed download ncbi')
-                print('\tbioshed download local')
                 return
             if str(args[2]).lower() == 'encode':
                 atlas_encode_utils.download_encode( dict(downloadstr=str(' '.join(args[3:])).strip()))
+            elif str(args[2]).lower() in ['tcga', 'gdc']:
+                atlas_tcga_utils.download_gdc( dict(downloadstr=str(' '.join(args[3:])).strip()))
             elif str(args[2]).lower() == 'ncbi':
                 print('NCBI download coming soon!')
             elif str(args[2]).lower() == 'local':
