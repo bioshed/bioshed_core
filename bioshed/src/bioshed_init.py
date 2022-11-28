@@ -104,6 +104,7 @@ def bioshed_setup( args ):
             bioshed_init_aws()
             api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file))
             provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file, keyfile=api_key_file))
+            env_file = write_env_file( dict(cloud=cloud_provider, initpath=init_path))
             print('\nBioShed AWS integration setup successful! To setup the core AWS resources, now type:')
             print('\t$ bioshed deploy core')
             print('\n Or try one of the following to test your setup:')
@@ -269,6 +270,58 @@ def bioshed_teardown( args ):
     subprocess.call('terraform apply -destroy', shell=True)
     os.chdir(cwd)
     return
+
+def write_env_file( args ):
+    """ Writes environment file for use with cloud provider containers.
+
+    cloud: cloud_provider
+    initpath: path of config and init files for bioshed
+    group: key group if multiple credentials are in credentials file. Default: 'default'
+    ---
+    envfile: path and name of env file
+    """
+    cloud = args['cloud'] if 'cloud' in args else 'aws'
+    initpath = args['initpath'] if 'initpath' in args else ''
+    group = args['group'] if 'group' in args else 'default'
+    envfile = os.path.join(initpath,'.env_{}'.format(cloud))
+    credfile = ''
+    access_key = ''
+    secret_key = ''
+    current_group = ''
+    if initpath != '' and os.path.exists(initpath) and not os.path.exists(envfile):
+        if cloud in ['aws','amazon']:
+            credfile = '$HOME/.aws/credentials'
+            if os.path.exists(credfile):
+                with open(credfile,'r') as f:
+                    r = f.readline()
+                    if 'aws_access_key_id' in r and current_group == group:
+                        access_key = str(r.strip().split('=')[-1]).strip()
+                    elif 'aws_secret_access_key' in r and current_group == group:
+                        secret_key = str(r.strip().split('=')[-1]).strip()
+                    elif '[' in r and ']' in r:
+                        if group in r:
+                            current_group = group
+                        else:
+                            current_group = ''
+            with open(envfile,'w') as fout:
+                fout.write('AWS_ACCESS_KEY_ID={}\n'.format(access_key))
+                fout.write('AWS_SECRET_ACCESS_KEY={}\n'.format(secret_key))
+    return envfile
+
+def get_env_file( args ):
+    """ Gets environment file for cloud provider.
+
+    cloud: cloud provider
+    initpath: init path with all config and env files
+    ---
+    envfile: env file for that cloud provider
+    """
+    cloud = args['cloud'] if 'cloud' in args else 'aws'
+    initpath = args['initpath'] if 'initpath' in args else ''
+    if cloud=='aws' and initpath != '':
+        return os.path.join(initpath,'.env_{}'.format(cloud))
+    else:
+        return ''
 
 def cloud_setup( args ):
     """ Checks if cloud provider already setup in Bioshed. (bioshed setup [cloud])

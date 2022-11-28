@@ -59,7 +59,7 @@ def bioshed_cli_main( args ):
             # special case: if no cloud provider is fully setup, then run locally
             if not (bioshed_init.cloud_configured({}) and bioshed_init.cloud_core_setup( dict(configfile=AWS_CONFIG_FILE))):
                 args = args[0:2] + ['--local'] + args[2:]
-            
+
             args = args[2:] # don't need to parse "bioshed run/runlocal"
             dockerargs = ''
             registry = ''
@@ -81,6 +81,9 @@ def bioshed_cli_main( args ):
                     # if no cloud bucket is specified, then output to local.
                     if 's3://' not in quick_utils.format_type(args, 'space-str') and 'gcp://' not in quick_utils.format_type(args, 'space-str'):
                         dockerargs += '-v {}:/output/:Z '.format(current_dir)
+                    if '--aws-env-file' not in ogargs and 's3://' in quick_utils.format_type(args, 'space-str'):
+                        # if S3 bucket is specified and aws-env-file is not specified, then use default aws config file
+                        args = ['--aws-env-file', bioshed_init.get_env_file(dict(cloud='aws', initpath=INIT_PATH))] + args
                     # args = args[1:]
                 elif args[0]=='--inputdir':
                     if len(args) < 2:
