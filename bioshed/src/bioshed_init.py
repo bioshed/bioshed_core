@@ -444,57 +444,83 @@ def bioshed_run_help():
     """ Help menu for bioshed run.
     """
     print("""
-    Run bioinformatics applications with BioShed.
-    BioShed allows you to run applications as you would normally.
-    Since BioShed is integrated with your cloud environment, you can specify remote file paths.
+
+    ------------------------------------------------------------
+    BioShed RUN
+    ------------------------------------------------------------
+    Welcome to BioShed Run! With this tool, you can:
+        - Run bioinformatics applications as you would normally, but without the hassle of installation or setup.
+        - Perform bioinformatics on your own computer or in the cloud.
+        - Seamlessly work with data files on local or remote cloud file systems.
 
     Usage:
-        bioshed run <optional:CONFIG-ARGS> <MODULE> <PROGRAM-ARGS>
+        bioshed run <optional:CONFIG-ARGS> <APP> <PROGRAM-ARGS> out::OUTPUT_DIR(optional)
 
-    Examples using AWS cloud storage:
-        $ bioshed run fastqc s3://folder1/seq.fastq.gz
-        $ bioshed run bwa mem s3://genomes/bwa_index s3://folder1/seq.fastq.gz out://s3://alignments/
-        $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
+    <optional CONFIG-ARGS>
+        --local                 Explicitly run on local system. Requires docker installed and running
+        --aws-env-file <.ENV>   AWS environment file with the following format:
+                                  AWS_ACCESS_KEY_ID=[ID]
+                                  AWS_SECRET_ACCESS_KEY=[KEY]
+                                  AWS_DEFAULT_REGION=[region]
+        --inputdir <DIR>        Full path of local input directory. Requires --local. By default, the current directory is used.
 
-    Examples using local storage:
-        $ bioshed run --local --aws-env-file .env --inputdir /home/fastq/ zcat /input/my.fastq.gz
-        $ bioshed run --local --inputdir . cat /input/README.txt
-        $ bioshed run fastqc --help
 
-    Examples using hybrid environment:
-        $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
-        $ bioshed run fastqc s3://bioshed-examples/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz out::local
+    <APP>
+        Type "bioshed run --list" to see a list of available applications. Examples are:
+            fastqc              FastQC Quality Control for sequencing data
+            STAR                RNA-STAR aligner
+            bwa                 Burrows-Wheeler aligner
+            gatk                GATK sequencing workflow toolkit
 
-    Output:
-        bioshed.run.out                 All text printed to the console (STDOUT)
-        program.cat.<TIMESTAMP>.1.log   Log file of program output
-        run.<TIMESTAMP>.log             Run log JSON
-        out::<OUTPUT_FOLDER>            Output folder for all log and data files.
-                                        If no output folder is specified, then the input folder is used as the output folder.
-                                        You can explicitly specify local by "out::local"
+        You can also run BioContainers on BioShed. For help with this, just type:
+            $ bioshed run biocontainers --help
 
-    optional CONFIG-ARGS:
-        --local                Run application on local system. Requires docker to be installed.
-        --aws-env-file <.ENV>  AWS environment file with the following format:
-                                 AWS_ACCESS_KEY_ID=[ID]
-                                 AWS_SECRET_ACCESS_KEY=[KEY]
-                                 AWS_DEFAULT_REGION=[region]
-        --inputdir <DIR>       Full path of local input directory. Requires --local.
+    <PROGRAM-ARGS>
+        Run any bioinformatics application as you would normally. 
+        One special case is: 
+            /input/<FILE>       When running locally, prefix any local files with /input/ - ex: /input/my.fastq
 
-    PROGRAM-ARGS:
-        out::<OUTPUT_FOLDER>   Output folder for all log and data files. Specify full remote path.
-                               You can also specify full local path if --local option is on.
-                               Without this option, files are output back to the input path.
-        /input/<FILE>          When using --local and --inputdir options, prefix any local files located in --inputdir with /input/
 
-    HELP:
-        For help on how to run an application module, type one of the following:
-        $ bioshed run <MODULE> --help
-        $ bioshed run <MODULE> --example
+    out::OUTPUT_DIR (optional)
+        out::<OUTPUT_DIR>       Optional output directory for all data + log files. Specify full path (local or remote).
+                                Without this option, files are output back to the input path.
+        out::local              Special case - use the current local directory as the output directory.
+
+
+    The following files are output:
+        bioshed.run.out         All text printed to the console (STDOUT)
+        program.cat.<TIME>.log  Log file of program output
+        run.<TIME>.log          Run log JSON
+        out::<OUTPUT_FOLDER>    Output folder for all log and data files. You can explicitly specify local by "out::local"
+                                If no output folder is specified, then the input folder is used as the output folder.                                
+
+    ------------------------------------------------------------
+    EXAMPLES
+    ------------------------------------------------------------
+        Using cloud storage:
+            $ bioshed run fastqc s3://folder1/seq.fastq.gz
+            $ bioshed run bwa mem s3://genomes/bwa_index s3://folder1/seq.fastq.gz out://s3://alignments/
+            $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
+
+        Using local storage:
+            $ bioshed run zcat /input/my.fastq.gz out::local
+            $ bioshed run fastqc file.fastq.gz out::local
+            $ bioshed run --local --inputdir /home/ cat /input/README.txt
+
+        Using local and cloud (hybrid) storage:
+            $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
+            $ bioshed run fastqc s3://bioshed-examples/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz out::local
+
+    ------------------------------------------------------------
+    HELP
+    ------------------------------------------------------------
+        For help on how to run an application, type one of the following:
+            $ bioshed run <APP> --help
+            $ bioshed run <APP> --example
 
         Examples:
-        $ bioshed run fastqc --help     Shows help menu for FASTQC - output to local file "bioshed.run.out"
-        $ bioshed run fastqc --example  Shows an example of running FASTQC - output to local file "bioshed.run.out"
+            $ bioshed run fastqc --help     Shows help menu for FASTQC - output to local file "bioshed.run.out"
+            $ bioshed run fastqc --example  Shows an example of running FASTQC - output to local file "bioshed.run.out"
 
     """)
 

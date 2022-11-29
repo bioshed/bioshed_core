@@ -78,14 +78,16 @@ def bioshed_cli_main( args ):
                     current_dir = str(os.getcwd()).replace(' ','\ ')
                     #if '--inputdir' not in ogargs:
                     #    dockerargs += '-v {}:/input/ '.format(current_dir)
-                    args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=current_dir))
-                    # if no cloud bucket is specified, then output to local.
-                    if 's3://' not in quick_utils.format_type(args, 'space-str') and 'gcp://' not in quick_utils.format_type(args, 'space-str'):
-                        dockerargs += '-v {}:/output/:Z '.format(current_dir)
-                    if '--aws-env-file' not in ogargs and 's3://' in quick_utils.format_type(args, 'space-str'):
-                        # if S3 bucket is specified and aws-env-file is not specified, then use default aws config file
-                        args = ['--aws-env-file', bioshed_init.get_env_file(dict(cloud='aws', initpath=INIT_PATH))] + args
-                    # args = args[1:]
+                    if 'biocontainers' not in ogargs:
+                        args = docker_utils.specify_output_dir( dict(program_args=args[1:], default_dir=current_dir))
+                        # if no cloud bucket is specified, then output to local.
+                        if 's3://' not in quick_utils.format_type(args, 'space-str') and 'gcp://' not in quick_utils.format_type(args, 'space-str'):
+                            dockerargs += '-v {}:/output/:Z '.format(current_dir)
+                        if '--aws-env-file' not in ogargs and 's3://' in quick_utils.format_type(args, 'space-str'):
+                            # if S3 bucket is specified and aws-env-file is not specified, then use default aws config file
+                            args = ['--aws-env-file', bioshed_init.get_env_file(dict(cloud='aws', initpath=INIT_PATH))] + args
+                    else:
+                        args = args[1:]
                 elif args[0]=='--inputdir':
                     if len(args) < 2:
                         print('You need to specify an input directory.')
@@ -101,10 +103,10 @@ def bioshed_cli_main( args ):
                     bioshed_init.bioshed_run_help()
                     return
             module = args[0].strip().lower()
-
+            
             # special case: biocontainers
             if module.lower() == 'biocontainers':
-                if len(args) < 2 or args[-1] == '--help':
+                if len(args) < 2 or (len(args) == 3 and '--help' in ogargs):
                     bioshed_init.biocontainers_help()
                     return
                 module = str(args[1].split(':')[0]).strip().lower()
