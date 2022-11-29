@@ -33,7 +33,7 @@ def bioshed_cli_main( args ):
     args: list of command-line args
 
     [TODO] figure out local search
-    [TODO] add docker installation to "pip install bioshed"
+    [DONE] add docker installation to "pip install bioshed"
     """
     ogargs = quick_utils.format_type(args, 'space-str')       # original arguments
 
