@@ -57,6 +57,17 @@ def bioshed_cli_main( args ):
                 if cmd == 'run' and '--local' not in args:
                     args = args[0:2] + ['--local'] + args[2:]
 
+            # special case: bioshed run --list => list possible applications
+            if args[-1] == '--list' and len(args) == 3 and 'biocontainers' not in ogargs:
+                public_containers = docker_utils.list_containers()
+                print('Use "bioshed run" to run one of the applications below:\n')
+                for public_container in sorted(public_containers):
+                    if public_container not in ['test']:
+                        print('\t{}'.format(public_container))
+                print('')
+                print('Type: "bioshed run --help" for full documentation.\n')
+                return
+
             # special case: if no cloud provider is fully setup, then run locally
             if not (bioshed_init.cloud_configured({}) and bioshed_init.cloud_core_setup( dict(configfile=AWS_CONFIG_FILE))):
                 args = args[0:2] + ['--local'] + args[2:]
@@ -103,7 +114,7 @@ def bioshed_cli_main( args ):
                     bioshed_init.bioshed_run_help()
                     return
             module = args[0].strip().lower()
-            
+
             # special case: biocontainers
             if module.lower() == 'biocontainers':
                 if len(args) < 2 or (len(args) == 3 and '--help' in ogargs):
