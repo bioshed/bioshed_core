@@ -127,7 +127,7 @@ def bioshed_init_macosx():
     if int(subprocess.call('terraform --help', shell=True)) != 0:
         subprocess.call('brew tap hashicorp/tap', shell=True)
         subprocess.call('brew install hashicorp/tap/terraform', shell=True)
-    if int(subprocess.call('docker --help')) != 0:
+    if int(subprocess.call('docker --help', shell=True)) != 0:
         subproess.call('brew cask install docker', shell=True)
     return
 
@@ -476,8 +476,8 @@ def bioshed_run_help():
             $ bioshed run biocontainers --help
 
     <PROGRAM-ARGS>
-        Run any bioinformatics application as you would normally. 
-        One special case is: 
+        Run any bioinformatics application as you would normally.
+        One special case is:
             /input/<FILE>       When running locally, prefix any local files with /input/ - ex: /input/my.fastq
 
 
@@ -492,7 +492,7 @@ def bioshed_run_help():
         program.cat.<TIME>.log  Log file of program output
         run.<TIME>.log          Run log JSON
         out::<OUTPUT_FOLDER>    Output folder for all log and data files. You can explicitly specify local by "out::local"
-                                If no output folder is specified, then the input folder is used as the output folder.                                
+                                If no output folder is specified, then the input folder is used as the output folder.
 
     ------------------------------------------------------------
     EXAMPLES
