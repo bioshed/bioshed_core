@@ -78,13 +78,8 @@ def bioshed_cli_main( args ):
             ctag = ''
             need_user = ''
 
-            # special case: -u <USER> for sudo argument
-            if args[0] == '-u':
-                need_user = args[1]
-                args = args[2:]
-
             # optional argument is specified
-            while args[0].startswith('--'):
+            while args[0].startswith('--') or args[0]=='-u':
                 if args[0]=='--aws-env-file':
                     if len(args) < 2:
                         print('Either did not specify env file or module name - ex: bioshed runlocal --aws-env-file .env fastqc -h')
@@ -120,6 +115,10 @@ def bioshed_cli_main( args ):
                 elif args[0]=='--help':
                     bioshed_init.bioshed_run_help()
                     return
+                elif args[0] == '-u':
+                    # special case: -u <USER> for sudo argument
+                    need_user = args[1]
+                    args = args[2:]
             module = args[0].strip().lower()
 
             # special case: biocontainers

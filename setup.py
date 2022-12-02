@@ -1,7 +1,7 @@
 from setuptools import setup
 setup(
     name='bioshed',
-    version='0.2.7',
+    version='0.2.8',
     description='BioShed Cloud Bioinformatics Tookit',
     install_requires=[
         'boto3',
