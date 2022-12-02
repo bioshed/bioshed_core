@@ -76,6 +76,13 @@ def bioshed_cli_main( args ):
             dockerargs = ''
             registry = ''
             ctag = ''
+            need_user = ''
+
+            # special case: -u <USER> for sudo argument
+            if args[0] == '-u':
+                need_user = args[1]
+                args = args[2:]
+
             # optional argument is specified
             while args[0].startswith('--'):
                 if args[0]=='--aws-env-file':
@@ -140,7 +147,7 @@ def bioshed_cli_main( args ):
             elif cmd == 'runlocal':
                 print('TOTAL COMMAND: {} | {}'.format(str(dockerargs), str(args)))
                 print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
-                docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs, registry=registry, tag=ctag))
+                docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs, registry=registry, tag=ctag, need_user=need_user))
 
         elif cmd == 'build' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
