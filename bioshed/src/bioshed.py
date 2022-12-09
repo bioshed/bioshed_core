@@ -109,6 +109,9 @@ def bioshed_cli_main( args ):
                     if 'biocontainers' not in ogargs:
                         dockerargs += '-v {}:/input/ '.format(args[1])
                         args = docker_utils.specify_output_dir( dict(program_args=args[2:], default_dir=args[1]))
+                        # add local flag if not explicitly specified
+                        if '--local' not in ogargs:
+                            args = ['--local'] + args
                     else:
                         # special case: biocontainers
                         dockerargs += '-v {}:/data/ '.format(args[1])
