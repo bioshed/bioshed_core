@@ -462,7 +462,7 @@ def bioshed_run_help():
                                   AWS_ACCESS_KEY_ID=[ID]
                                   AWS_SECRET_ACCESS_KEY=[KEY]
                                   AWS_DEFAULT_REGION=[region]
-        --inputdir <DIR>        Full path of local input directory. Requires --local. By default, the current directory is used.
+        --inputdir <DIR>        Full path of local input directory. By default, the current directory is used.
 
 
     <APP>
@@ -477,9 +477,6 @@ def bioshed_run_help():
 
     <PROGRAM-ARGS>
         Run any bioinformatics application as you would normally.
-        One special case is:
-            /input/<FILE>       When running locally, prefix any local files with /input/ - ex: /input/my.fastq
-
 
     out::OUTPUT_DIR (optional)
         out::<OUTPUT_DIR>       Optional output directory for all data + log files. Specify full path (local or remote).
@@ -503,9 +500,9 @@ def bioshed_run_help():
             $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
 
         Using local storage:
-            $ bioshed run zcat /input/my.fastq.gz out::local
+            $ bioshed run zcat my.fastq.gz out::local
             $ bioshed run fastqc file.fastq.gz out::local
-            $ bioshed run --local --inputdir /home/ cat /input/README.txt
+            $ bioshed run --inputdir /home/ cat README.txt
 
         Using local and cloud (hybrid) storage:
             $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
