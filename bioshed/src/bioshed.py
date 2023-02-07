@@ -160,6 +160,7 @@ def bioshed_cli_main( args ):
             print('MODULE: '+str(module))
             if 'install' in parsed_args:
                 docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
+
         elif cmd == 'setup' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) > 2:
                 cloud_provider = args[2].lower()
@@ -169,6 +170,7 @@ def bioshed_cli_main( args ):
                     print('Provider {} currently not supported.'.format(cloud_provider))
             else:
                 print('Must specify a cloud provider - e.g., bioshed setup aws')
+
         elif cmd == 'init':
             initialize_bioshed()
 
@@ -181,11 +183,13 @@ def bioshed_cli_main( args ):
             provider = 'aws'
             deploy_option = args[3] if len(args) > 3 else ''
             bioshed_deploy_core.bioshed_deploy_core(dict(cloud_provider=provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, deployoption=deploy_option))
+
         elif cmd == 'teardown' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             r = input('You are going to tear down your entire bioshed infrastructure. Are you sure? y/n: ') or "N"
             # have another credential-based check - ask for AWS credentials or some password
             if r.upper() == "Y":
                 bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH))
+                
         elif cmd == 'search' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to search and type your search terms. Examples:')
@@ -267,7 +271,7 @@ def initialize_bioshed():
         which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE, initpath=INIT_PATH))
         print("""
         BioShed initial install complete. Follow-up options are:
-        
+
         1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.
         2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.
         3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.
