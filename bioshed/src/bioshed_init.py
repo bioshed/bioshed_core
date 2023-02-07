@@ -1,4 +1,8 @@
 import os, sys, subprocess, json, uuid
+##
+## $ bioshed init
+## 1) checks 
+
 
 SCRIPT_DIR = str(os.path.dirname(os.path.realpath(__file__)))
 HOME_PATH = os.path.expanduser('~')
@@ -19,6 +23,7 @@ import quick_utils
 
 def userExists( user ):
     """ Check if username exists in the user database.
+    [NOTE] Currently makes an API call to "searchusers" route within the Bioshed serverless core.
     """
     mybody = {"user": user}
     user_exists = quick_utils.post_request(dict(url=BIOSHED_SERVERLESS_API+'/searchusers', body=mybody))
@@ -82,13 +87,17 @@ def bioshed_init( args ):
 
     return which_os
 
+
 def bioshed_setup( args ):
     """
+    Sets up Bioshed infrastructure for a given cloud provider. Called from bioshed core.
+
     cloud: aws, gcp,...
     initpath: path to all init and setup files
     configfile: config file for important config constants
     providerfile: TF provider file
     mainfile: TF main file
+    apikeyfile: pre-generated API key file for accessing cloud provider, if available (optional)
     ---
     provider_file
 
@@ -99,6 +108,7 @@ def bioshed_setup( args ):
     config_file = args['configfile']
     provider_file = args['providerfile']
     main_file = args['mainfile']
+    pregen_apikey_file = args['apikeyfile'] if 'apikeyfile' in args else '' # already-generated API key file, if available
     setup_again = 'Y'
 
     if cloud_provider.lower() in ['aws','amazon']:
@@ -107,7 +117,7 @@ def bioshed_setup( args ):
             setup_again = PKEY_INPUT = input('Detected existing setup. Overwrite? (Y/N): ') or 'N'
         if setup_again.upper()[0] == 'Y':
             bioshed_init_aws()
-            api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file))
+            api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file)) if pregen_apikey_file == '' else pregen_apikey_file
             provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file, keyfile=api_key_file))
             env_file = write_env_file( dict(cloud=cloud_provider, initpath=init_path))
             print('\nBioShed AWS integration setup successful! To setup the core AWS resources, now type:')
@@ -117,20 +127,25 @@ def bioshed_setup( args ):
             print('\t$ bioshed run fastqc --example')
     return provider_file
 
+
 def bioshed_init_macosx():
     # first make sure brew is installed: https://brew.sh/
     # to install pip: subprocess.call('brew install brew-pip', shell=True)
     # install terraform
-    if int(subprocess.call('brew --help', shell=True)) != 0:
+    print('Checking for brew. Bioshed will automatically install if needed...')
+    if int(subprocess.call('brew --help', shell=True, stdout=subprocess.DEVNULL)) != 0:
         subprocess.call('/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"', shell=True)
         # brew update ?
         # brew upgrade ?
-    if int(subprocess.call('terraform --help', shell=True)) != 0:
+    print('Checking for Terraform. Bioshed will automatically install if needed...')        
+    if int(subprocess.call('terraform --help', shell=True, stdout=subprocess.DEVNULL)) != 0:
         subprocess.call('brew tap hashicorp/tap', shell=True)
         subprocess.call('brew install hashicorp/tap/terraform', shell=True)
-    if int(subprocess.call('docker --help', shell=True)) != 0:
-        subproess.call('brew cask install docker', shell=True)
+    print('Checking for Docker. Bioshed will automatically install if needed...')
+    if int(subprocess.call('docker --help', shell=True, stdout=subprocess.DEVNULL)) != 0:
+        subprocess.call('brew cask install docker', shell=True)
     return
+
 
 def bioshed_init_amazonlinux():
     # install pip
@@ -139,14 +154,17 @@ def bioshed_init_amazonlinux():
     subprocess.call('sudo yum install -y yum-utils', shell=True)
 
     # install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started
+    print('Checking for Terraform. Bioshed will automatically install if needed...')    
     if int(subprocess.call('terraform --help', shell=True)) != 0:
         subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo', shell=True)
         subprocess.call('sudo yum -y install terraform', shell=True)
 
     # install docker
+    print('Checking for Docker. Bioshed will automatically install if needed...')    
     if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo yum install docker', shell=True)
     return
+
 
 def bioshed_init_redhat():
     # install pip
@@ -154,14 +172,18 @@ def bioshed_init_redhat():
     subprocess.call('sudo yum -y install python3-pip zip unzip', shell=True)
 
     # install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started
-    subprocess.call('sudo yum install -y yum-utils', shell=True)
-    subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo', shell=True)
-    subprocess.call('sudo yum -y install terraform', shell=True)
+    print('Checking for Terraform. Bioshed will automatically install if needed...')
+    if int(subprocess.call('terraform --help', shell=True)) != 0: 
+        subprocess.call('sudo yum install -y yum-utils', shell=True)
+        subprocess.call('sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo', shell=True)
+        subprocess.call('sudo yum -y install terraform', shell=True)
 
     # install docker
+    print('Checking for Docker. Bioshed will automatically install if needed...')
     if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo yum install docker', shell=True)
     return
+
 
 def bioshed_init_ubuntu():
     # install pip
@@ -169,31 +191,37 @@ def bioshed_init_ubuntu():
     subprocess.call('sudo apt-get -y install python3-pip zip unzip', shell=True)
 
     # install terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli?in=terraform/aws-get-started
-    subprocess.call('sudo apt-get install -y gnupg software-properties-common', shell=True)
-    subprocess.call('wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg', shell=True)
-    subprocess.call('gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint', shell=True)
-    subprocess.call('echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list', shell=True)
-    subprocess.call('sudo apt update', shell=True)
-    subprocess.call('sudo apt-get install terraform', shell=True)
+    print('Checking for Terraform. Bioshed will automatically install if needed...')
+    if int(subprocess.call('terraform --help', shell=True)) != 0:
+        subprocess.call('sudo apt-get install -y gnupg software-properties-common', shell=True)
+        subprocess.call('wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg', shell=True)
+        subprocess.call('gpg --no-default-keyring --keyring /usr/share/keyrings/hashicorp-archive-keyring.gpg --fingerprint', shell=True)
+        subprocess.call('echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list', shell=True)
+        subprocess.call('sudo apt update', shell=True)
+        subprocess.call('sudo apt-get install terraform', shell=True)
 
     # boto3 for python-based infra control
     # subprocess.call('pip install boto3', shell=True)
 
     # install docker
+    print('Checking for Docker. Bioshed will automatically install if needed...')    
     if int(subprocess.call('docker --help', shell=True)) != 0:
         subprocess.call('sudo apt-get install -y docker.io', shell=True)
         # subprocess.call('sudo snap install docker', shell=True)
 
     return
 
+
 def bioshed_init_aws():
     # install aws cli and configure
+    print('Checking for AWS CLI. Bioshed will automatically install if needed...')
     if int(subprocess.call('aws --help', shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)) > 3:
         subprocess.call('pip install awscli', shell=True)
         subprocess.call('curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"', shell=True)
         subprocess.call('unzip awscliv2.zip', shell=True)
         subprocess.call('sudo ./aws/install', shell=True)
     subprocess.call('aws configure', shell=True)
+
 
 def bioshed_setup_aws( args ):
     """
@@ -206,7 +234,7 @@ def bioshed_setup_aws( args ):
     providerfile: TF provider file name
 
     """
-    # setup terraform provider (AWS): https://learn.hashicorp.com/tutorials/terraform/aws-build
+    ## init, config and API file paths
     cwd = os.getcwd()
     INIT_PATH = args['initpath']
     if not os.path.exists(INIT_PATH):
@@ -216,6 +244,8 @@ def bioshed_setup_aws( args ):
     MAIN_FILE = args['mainfile'] # os.path.join(INIT_PATH, 'main.tf')
     AWS_CONFIG_FILE = args['configfile']
     KEYS_FILE = os.path.join(INIT_PATH, 'hsconfig.tf')
+
+    ## User needs to specify a region to setup Bioshed infrastructure. Note that any existing infrastructure should remain untouched.
     AWS_REGION = input('Which region do you want to setup your bioshed infrastructure?\n1: us-west-1 (california)\n2: us-west-2 (oregon) - COMMONLY USED\n3: us-east-1 (virginia) - COMMONLY USED\n4: us-east-2 (ohio)\n5: ap-south-1 (india) - COMMONLY USED\n6: ap-northeast-1 (tokyo)\n7: ap-northeast-2 (seoul)\n8: ap-southeast-1 (singapore)\n9: ca-central-1 (canada)\n10: eu-west-1 (ireland) - COMMONLY USED\n11: eu-west-2 (london)\n12: eu-west-3 (paris)\n13: eu-central-1 (germany)\n\nType a number or a region name: ')
     if AWS_REGION not in VALID_REGIONS and AWS_REGION not in VALID_REGION_NUMBERS:
         AWS_REGION = input('Please type a valid number or AWS region (default: us-west-2): ') or "us-west-2"
@@ -225,11 +255,13 @@ def bioshed_setup_aws( args ):
     AWS_CONSTANTS_JSON["ecr_registry"] = ECR_PUBLIC_REGISTRY
     AWS_CONSTANTS_JSON["aws_region"] = AWS_REGION
 
+    ## User can first run "bioshed keygen aws" to generate a private-public key pair for accessing AWS resources, or let Bioshed auto-generate a private/public key pair during setup.
     if apikeyfile == '':
         PKEY_INPUT = input('Provide a valid public key for accessing AWS resources (in a separate window, type "bioshed keygen aws" or type "ssh-keygen" and paste the public key here). Press ENTER to skip if not using AWS resources: ')
     else:
         PKEY_INPUT = get_public_key( dict(configfile=AWS_CONFIG_FILE))
 
+    # setup terraform provider (AWS): https://learn.hashicorp.com/tutorials/terraform/aws-build
     with open(PROVIDER_FILE,'w') as f:
         f.write('terraform {\n')
         f.write('  required_providers {\n')
@@ -246,6 +278,7 @@ def bioshed_setup_aws( args ):
         f.write('}\n')
     with open(MAIN_FILE,'w') as f:
         f.write('\n')
+    # public key for accessing AWS EC2 resources is deployed using Terraform key pair deployer: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/key_pair
     if PKEY_INPUT not in ['',' ',[]]:
         with open(KEYS_FILE,'w') as f:
             f.write(
@@ -256,13 +289,15 @@ def bioshed_setup_aws( args ):
             )
             f.write('  public_key = "{}"\n'.format(PKEY_INPUT))
             f.write('}\n\n')
+    # indicate that AWS has been setup
     AWS_CONSTANTS_JSON['setup'] = 'True'
+    # write config file and finish initialization
     quick_utils.add_to_json( AWS_CONFIG_FILE, AWS_CONSTANTS_JSON)
     os.chdir(INIT_PATH)
-    # initialize terraform
     subprocess.call('terraform init', shell=True)
     os.chdir(cwd)
     return PROVIDER_FILE
+
 
 def bioshed_teardown( args ):
     """ Destroys cloud infrastructure setup by bioshed.
@@ -277,6 +312,7 @@ def bioshed_teardown( args ):
     subprocess.call('terraform apply -destroy', shell=True)
     os.chdir(cwd)
     return
+
 
 def write_env_file( args ):
     """ Writes environment file for use with cloud provider containers.
@@ -318,6 +354,7 @@ def write_env_file( args ):
                 fout.write('AWS_SECRET_ACCESS_KEY={}\n'.format(secret_key))
     return envfile
 
+
 def get_env_file( args ):
     """ Gets environment file for cloud provider.
 
@@ -332,6 +369,7 @@ def get_env_file( args ):
         return os.path.join(initpath,'.env_{}'.format(cloud))
     else:
         return ''
+
 
 def cloud_setup( args ):
     """ Checks if cloud provider already setup in Bioshed. (bioshed setup [cloud])
@@ -353,6 +391,7 @@ def cloud_setup( args ):
             isSetup = True
     return isSetup
 
+
 def cloud_configured( args ):
     """ Checks if a cloud provider is configured properly
 
@@ -372,6 +411,7 @@ def cloud_configured( args ):
     else:
         return True
 
+
 def cloud_core_setup( args ):
     """ Checks if cloud core is setup (i.e., bioshed deploy core) has been run).
 
@@ -387,6 +427,7 @@ def cloud_core_setup( args ):
     if is_core_setup.upper()[0] in ['Y','T']:
         isCoreSetup = True
     return isCoreSetup
+
 
 def generate_api_key( args ):
     """ Generates an API key for a cloud provider.
@@ -420,10 +461,12 @@ def generate_api_key( args ):
         print('ERROR: No key generated. Must specify a cloud config file.')
     return keyfile
 
+
 def get_public_key( args ):
     """ Gets public key for a given key file specified within config file.
 
-    configfile: config file where key file name is stored
+    configfile: config file where key file name is stored. 
+                Usually there will be a pair of files <KEYFILE> and <KEYFILE.pub> corresponding to the private and public keys, respectively.
     ---
     pubkey: public key
     """
@@ -440,6 +483,7 @@ def get_public_key( args ):
             for r in f:
                 pubkey = r.strip()
     return pubkey
+
 
 def bioshed_run_help():
     """ Help menu for bioshed run.
@@ -521,6 +565,7 @@ def bioshed_run_help():
             $ bioshed run fastqc --example  Shows an example of running FASTQC - output to local file "bioshed.run.out"
 
     """)
+
 
 def biocontainers_help():
     """ Help menu for bioshed run biocontainers.

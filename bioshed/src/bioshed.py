@@ -170,23 +170,8 @@ def bioshed_cli_main( args ):
             else:
                 print('Must specify a cloud provider - e.g., bioshed setup aws')
         elif cmd == 'init':
-            # first create init directory if doesn't exist
-            if not os.path.exists(INIT_PATH):
-                os.mkdir(INIT_PATH)
-            # create config file if doesn't exist
-            if not os.path.exists(AWS_CONFIG_FILE):
-                with open(AWS_CONFIG_FILE,'w') as fout:
-                    fout.write('{}')
-            # ask for login name (email)
-            login_success = bioshed_init.bioshed_login()
-            if login_success["login"]:
-                quick_utils.add_to_json(AWS_CONFIG_FILE, {"login": login_success["user"]})
-                which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE, initpath=INIT_PATH))
-                print('BioShed initial install complete. Follow-up options are:')
-                print('1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.')
-                print('2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.')
-                print('3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.')
-                print('')
+            initialize_bioshed()
+
         elif cmd == 'deploy' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Must specify a resource to deploy - e.g., bioshed deploy core\n')
@@ -263,12 +248,40 @@ def bioshed_cli_main( args ):
         print_help_menu()
     return
 
+
+def initialize_bioshed():
+    """ $ bioshed init
+        Initialize Bioshed by creating a unique bioshed init directory and creating necessary config files and API keys.
+    """
+    ## Bioshed creates an init directory (.bioshedinit) under a user's HOME directory to store config files, TF files, and API keys.
+    if not os.path.exists(INIT_PATH):
+        os.mkdir(INIT_PATH)
+    ## Bioshed uses a JSON file for configuring AWS access. This JSON file lives in the Bioshed init directory.
+    if not os.path.exists(AWS_CONFIG_FILE):
+        with open(AWS_CONFIG_FILE,'w') as fout:
+            fout.write('{}')
+    ## A user must login before initializing Bioshed.
+    login_success = bioshed_init.bioshed_login()
+    if login_success["login"]:
+        quick_utils.add_to_json(AWS_CONFIG_FILE, {"login": login_success["user"]})
+        which_os = bioshed_init.bioshed_init(dict(system=SYSTEM_TYPE, initpath=INIT_PATH))
+        print("""
+        BioShed initial install complete. Follow-up options are:
+        
+        1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.
+        2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.
+        3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.
+
+        """)
+    return
+
+
 def print_help_menu():
     print("""
     Welcome to Bioshed, an open-source bioinformatics infrastructure toolkit.
 
     Specify a valid subcommand. Valid subcommands are:
-    
+
     $ bioshed init
     $ bioshed setup aws
     $ bioshed deploy core
