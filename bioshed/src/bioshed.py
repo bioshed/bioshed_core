@@ -264,22 +264,28 @@ def bioshed_cli_main( args ):
     return
 
 def print_help_menu():
-    print('Specify a valid subcommand. Valid subcommands are:\n')
-    print('\t$ bioshed init')
-    print('\t$ bioshed setup aws')
-    print('\t$ bioshed deploy core')
-    print('\t$ bioshed teardown aws')
-    print('\t$ bioshed keygen aws')
-    print('')
-    print('\t$ bioshed run')
-    print('\t$ bioshed build')
-    print('')
-    print('\t$ bioshed search encode')
-    print('\t$ bioshed search tcga')
-    print('\t$ bioshed search gdc')
-    print('')
-    print('\t$ bioshed download encode')
-    print('\t$ bioshed download tcga')
-    print('\t$ bioshed download gdc')
-    print('')
+    print("""
+    Welcome to Bioshed, an open-source bioinformatics infrastructure toolkit.
+
+    Specify a valid subcommand. Valid subcommands are:
+    
+    $ bioshed init
+    $ bioshed setup aws
+    $ bioshed deploy core
+    $ bioshed teardown aws
+    $ bioshed keygen aws
+    
+    $ bioshed run
+    $ bioshed build
+    
+    $ bioshed search encode
+    $ bioshed search tcga
+    $ bioshed search gdc
+    
+    $ bioshed download encode
+    $ bioshed download tcga
+    $ bioshed download gdc
+    
+    """)
+
     return

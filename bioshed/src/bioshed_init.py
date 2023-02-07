@@ -40,7 +40,7 @@ def bioshed_login():
 
 def bioshed_init( args ):
     """
-    system: ubuntu, macosx,...
+    system: ubuntu, macosx, debian, redhat, centos, amazon
     cloud: aws, gcp,...
     initpath: path to all init and setup files
     configfile: config file for important config constants
@@ -49,6 +49,7 @@ def bioshed_init( args ):
     ---
     provider_file
 
+    [TODO] add windows support
     """
     system_type = args['system']
     init_path = args['initpath']
@@ -198,10 +199,12 @@ def bioshed_setup_aws( args ):
     """
     initpath: init path
     configfile: config file for important config constants
-    providerfile: TF provider file
-    mainfile: TF main file
-    keyfile: API key file
+    providerfile: TF provider file name
+    mainfile: TF main file name
+    keyfile: API key file name
     ---
+    providerfile: TF provider file name
+
     """
     # setup terraform provider (AWS): https://learn.hashicorp.com/tutorials/terraform/aws-build
     cwd = os.getcwd()
@@ -255,8 +258,6 @@ def bioshed_setup_aws( args ):
             f.write('}\n\n')
     AWS_CONSTANTS_JSON['setup'] = 'True'
     quick_utils.add_to_json( AWS_CONFIG_FILE, AWS_CONSTANTS_JSON)
-    # with open(AWS_CONFIG_FILE,'w') as f:
-    #     json.dump(AWS_CONSTANTS_JSON, f)
     os.chdir(INIT_PATH)
     # initialize terraform
     subprocess.call('terraform init', shell=True)
