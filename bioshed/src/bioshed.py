@@ -189,7 +189,7 @@ def bioshed_cli_main( args ):
             # have another credential-based check - ask for AWS credentials or some password
             if r.upper() == "Y":
                 bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH))
-                
+
         elif cmd == 'search' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to search and type your search terms. Examples:')
@@ -230,6 +230,7 @@ def bioshed_cli_main( args ):
                 print('Local download coming soon!')
             else:
                 print('Currently supported downloads: encode, nbci, local')
+
         elif cmd == 'keygen' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3 or (len(args) >=3 and str(args[2]).lower() not in VALID_PROVIDERS):
                 print('Specify a valid cloud provider to generate an API key for.')
@@ -244,6 +245,7 @@ def bioshed_cli_main( args ):
                 key_file = bioshed_init.generate_api_key( dict(cloud='gcp', configfile=GCP_CONFIG_FILE))
                 print_key = bioshed_init.get_public_key( dict(configfile=AWS_CONFIG_FILE))
                 print(print_key)
+                
         elif cmd in VALID_COMMANDS and not bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             print('Not logged on. Please type "bioshed init" and login first.')
         else:
