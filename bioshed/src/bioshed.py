@@ -212,6 +212,7 @@ def bioshed_cli_main( args ):
                 print('Local search coming soon!')
             else:
                 print('Currently supported searches: encode, tcga, gdc. Coming soon: nbci, local')
+                
         elif cmd == 'download' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('Specify a system or repository to download files from. Examples:')
@@ -245,7 +246,7 @@ def bioshed_cli_main( args ):
                 key_file = bioshed_init.generate_api_key( dict(cloud='gcp', configfile=GCP_CONFIG_FILE))
                 print_key = bioshed_init.get_public_key( dict(configfile=AWS_CONFIG_FILE))
                 print(print_key)
-                
+
         elif cmd in VALID_COMMANDS and not bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             print('Not logged on. Please type "bioshed init" and login first.')
         else:
