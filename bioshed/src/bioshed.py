@@ -73,6 +73,7 @@ def bioshed_cli_main( args ):
                 return
             deploy_resource = args[2]
             # for now, assume cloud provider is AWS
+            # [TODO] add support for other cloud providers
             provider = 'aws'
             deploy_option = args[3] if len(args) > 3 else ''
             bioshed_deploy_core.bioshed_deploy_core(dict(cloud_provider=provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, deployoption=deploy_option))
