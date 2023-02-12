@@ -6,14 +6,14 @@ import aws_s3_utils
 
 def bioshed_deploy_core( args ):
     """
-    "bioshed deploy core" deploys core functionality for running Bioshed applications in a cloud environment.
+    "bioshed deploy core <PROVIDER>" deploys core functionality for running Bioshed applications in a cloud environment.
 
     [TODO] add support for other cloud providers
 
     cloud_provider: aws, gcp,...
     initpath: path to init files
     configfile: AWS config file
-    deployoption: option for deployment - test, dryrun,...
+    deployoption: options for deployment - test, dryrun,...
     ---
     """
     cloud = args['cloud_provider']
