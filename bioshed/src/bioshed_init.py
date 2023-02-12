@@ -45,6 +45,9 @@ def bioshed_login():
 
 def bioshed_init( args ):
     """
+    "bioshed init" installs everything to get started with running Bioshed.
+    This includes Terraform and Docker. OS is auto-detected and appropriate packages are installed.
+
     system: ubuntu, macosx, debian, redhat, centos, amazon
     cloud: aws, gcp,...
     initpath: path to all init and setup files

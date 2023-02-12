@@ -68,14 +68,13 @@ def bioshed_cli_main( args ):
             initialize_bioshed()
 
         elif cmd == 'deploy' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
-            if len(args) < 3:
-                print('Must specify a resource to deploy - e.g., bioshed deploy core\n')
+            if len(args) < 4:
+                print('Must specify a resource to deploy - e.g., bioshed deploy aws core\n')
                 return
-            deploy_resource = args[2]
-            # for now, assume cloud provider is AWS
-            # [TODO] add support for other cloud providers
-            provider = 'aws'
-            deploy_option = args[3] if len(args) > 3 else ''
+            # resource to deploy - e.g., core
+            deploy_resource = args[3]
+            provider = args[2]
+            deploy_option = quick_utils.format_type(args[4:], 'space-str') if len(args) > 4 else ''
             bioshed_deploy_core.bioshed_deploy_core(dict(cloud_provider=provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, deployoption=deploy_option))
 
         elif cmd == 'teardown' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
@@ -316,7 +315,7 @@ def print_help_menu():
 
     $ bioshed init
     $ bioshed setup aws
-    $ bioshed deploy core
+    $ bioshed deploy core aws
     $ bioshed teardown aws
     $ bioshed keygen aws
     

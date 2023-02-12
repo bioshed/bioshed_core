@@ -6,6 +6,10 @@ import aws_s3_utils
 
 def bioshed_deploy_core( args ):
     """
+    "bioshed deploy core" deploys core functionality for running Bioshed applications in a cloud environment.
+
+    [TODO] add support for other cloud providers
+
     cloud_provider: aws, gcp,...
     initpath: path to init files
     configfile: AWS config file
@@ -17,10 +21,12 @@ def bioshed_deploy_core( args ):
     configfile = args['configfile']
     deployoption = args['deployoption'] if 'deployoption' in args else ''
     if cloud.lower() in ['aws','amazon']:
-        if deployoption.lower() == 'test':
+        if 'test' in deployoption.lower():
             bioshed_deploy_core_aws_test( dict(initpath=initpath))
         else:
             bioshed_deploy_core_aws_public( dict(initpath=initpath, deployoption=deployoption, configfile=configfile))
+    else:
+        print('Only AWS deployment is currently supported.')
     return
 
 def bioshed_deploy_core_aws_test( args ):
