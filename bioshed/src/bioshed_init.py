@@ -315,11 +315,12 @@ def bioshed_teardown( args ):
     INIT_PATH = args['initpath']
     provider = args['cloud'] if 'cloud' in args else 'aws' # default provider is aws
     options = args['options'] if 'options' in args else ''
-    
+
     os.chdir(INIT_PATH)
-    subprocess.call('terraform plan -destroy', shell=True)
-    if 'dryrun' not in options:
-        subprocess.call('terraform apply -destroy', shell=True)
+    if provider in ['aws', 'amazon']:
+        subprocess.call('terraform plan -destroy', shell=True)
+        if 'dryrun' not in options:
+            subprocess.call('terraform apply -destroy', shell=True)
     os.chdir(cwd)
     return
 
