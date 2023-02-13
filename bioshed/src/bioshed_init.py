@@ -307,12 +307,19 @@ def bioshed_teardown( args ):
     Be very careful before doing this.
 
     initpath: init path
+    cloud: cloud provider (aws, gcp,...)
+    options: teardown options. 
+             Currently supported: 'dryrun' - show plan but do not destroy
     """
     cwd = os.getcwd()
     INIT_PATH = args['initpath']
+    provider = args['cloud'] if 'cloud' in args else 'aws' # default provider is aws
+    options = args['options'] if 'options' in args else ''
+    
     os.chdir(INIT_PATH)
     subprocess.call('terraform plan -destroy', shell=True)
-    subprocess.call('terraform apply -destroy', shell=True)
+    if 'dryrun' not in options:
+        subprocess.call('terraform apply -destroy', shell=True)
     os.chdir(cwd)
     return
 

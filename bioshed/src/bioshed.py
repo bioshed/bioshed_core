@@ -72,16 +72,21 @@ def bioshed_cli_main( args ):
                 print('Must specify a resource to deploy - e.g., bioshed deploy aws core\n')
                 return
             # resource to deploy - e.g., core
-            deploy_resource = args[3]
-            provider = args[2]
+            deploy_resource = args[2]
+            provider = args[3]
             deploy_option = quick_utils.format_type(args[4:], 'space-str') if len(args) > 4 else ''
             bioshed_deploy_core.bioshed_deploy_core(dict(cloud_provider=provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, deployoption=deploy_option))
 
         elif cmd == 'teardown' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
+            if len(args) < 3:
+                print("Must specify a resource provider to teardown - e.g., bioshed teardown aws")
+                return
             r = input('You are going to tear down your entire bioshed infrastructure. Are you sure? y/n: ') or "N"
-            # have another credential-based check - ask for AWS credentials or some password
+            # [TODO] have another credential-based check - ask for AWS credentials or some password
             if r.upper() == "Y":
-                bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH))
+                provider = args[2]
+                teardown_options = quick_utils.format_type(args[3:], 'space-str') if len(args) > 3 else ''
+                bioshed_init.bioshed_teardown( dict(initpath=INIT_PATH, cloud=provider, options=teardown_options))
 
         elif cmd == 'search' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
