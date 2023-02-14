@@ -321,6 +321,8 @@ def bioshed_teardown( args ):
         subprocess.call('terraform plan -destroy', shell=True)
         if 'dryrun' not in options:
             subprocess.call('terraform apply -destroy', shell=True)
+    else:
+        print('Only AWS currently supported.')
     os.chdir(cwd)
     return
 
@@ -363,6 +365,8 @@ def write_env_file( args ):
             with open(envfile,'w') as fout:
                 fout.write('AWS_ACCESS_KEY_ID={}\n'.format(access_key))
                 fout.write('AWS_SECRET_ACCESS_KEY={}\n'.format(secret_key))
+        else:
+            print('Only AWS currently supported.')
     return envfile
 
 
@@ -460,16 +464,19 @@ def generate_api_key( args ):
         # in the rare event that key with unique id already exists, generate a new one
         unique_key_id = str(uuid.uuid4())[0:4]
         keyfile = os.path.join(INIT_PATH, 'bioshed_{}_{}'.format(cloud, unique_key_id))
-    if configfile != '':
-        # generate a new public/private key pair for cloud API.
-        rcode = subprocess.call("ssh-keygen -t rsa -N '' -f {}".format(keyfile), shell=True)
-        CONFIG_JSON['apikeyfile'] = keyfile
-        if int(rcode) == 0:
-            print('Public/private key generated at {}'.format(keyfile))
-        # reference key file name within config file
-        quick_utils.add_to_json( configfile, CONFIG_JSON)
+    if cloud in ['aws','amazon']:
+        if configfile != '':
+            # generate a new public/private key pair for cloud API.
+            rcode = subprocess.call("ssh-keygen -t rsa -N '' -f {}".format(keyfile), shell=True)
+            CONFIG_JSON['apikeyfile'] = keyfile
+            if int(rcode) == 0:
+                print('Public/private key generated at {}'.format(keyfile))
+            # reference key file name within config file
+            quick_utils.add_to_json( configfile, CONFIG_JSON)
+        else:
+            print('ERROR: No key generated. Must specify a cloud config file.')
     else:
-        print('ERROR: No key generated. Must specify a cloud config file.')
+        print('Cloud provider currently not supported. Valid providers: aws')
     return keyfile
 
 
