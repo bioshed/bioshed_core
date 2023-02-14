@@ -99,9 +99,10 @@ def bioshed_deploy_core_aws_public( args ):
     deployoption = args['deployoption'] if 'deployoption' in args else ''
     ---
 
-    TODO: add to existing TF files instead of overwriting.
-    TODO: check if VPC CIDR block is already taken before assigning
-    TODO: use generated key and public AMI - set this up
+    [TODO] add to existing TF files instead of overwriting.
+    [TODO] check if VPC CIDR block is already taken before assigning
+    [TODO] use generated key - set this up
+    [TODO] make EC2 Batch AMI public
     """
     cwd = os.getcwd()
     INIT_PATH = args['initpath'] # os.path.join(os.getcwd(), 'hsinit')
