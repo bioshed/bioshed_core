@@ -103,8 +103,10 @@ def bioshed_deploy_core_aws_public( args ):
     [TODO] check if VPC CIDR block is already taken before assigning
     [TODO] use generated key - set this up
     [TODO] make EC2 Batch AMI public
+    [TODO] add ability to specify multiple subnets
     """
     cwd = os.getcwd()
+    CIDR_BLOCKS = ['10.35.0.0']  # [TODO] make a list of CIDR blocks to check for availability
     INIT_PATH = args['initpath'] # os.path.join(os.getcwd(), 'hsinit')
     configfile = args['configfile']
     deployoption = args['deployoption'] if 'deployoption' in args else ''
@@ -133,7 +135,7 @@ def bioshed_deploy_core_aws_public( args ):
           description = "AWS Available Zones to use"
         """
         )
-        f.write('  default     = ["{}a", "{}b", "{}c", "{}d"]\n'.format(region, region, region, region))
+        f.write('  default     = ["{}a", "{}b", "{}c"]\n'.format(region, region, region))
         f.write('}\n\n')
         f.write(
         """
@@ -141,13 +143,21 @@ def bioshed_deploy_core_aws_public( args ):
         variable "vpc_cidr_block" {
           type        = string
           description = "Base CIDR Block for VPC"
-          default     = "10.35.0.0/16"
+        """)
+        f.write('  default     = "{}/16"\n'.format(CIDR_BLOCKS[0]))
+        f.write(
+        """
         }
 
         variable "vpc_cidr_range_public_subnets" {
           type        = list(string)
           description = "CIDR ranges for public subnets"
-          default     = ["10.35.0.0/17"]
+        """
+        )
+        # might need to expand the list if more than one subnet is defined
+        f.write('  default     = ["{}/17"]'.format(CIDR_BLOCKS[0]))
+        f.write(
+        """
         }
 
         variable "enable_dns_hostnames" {
