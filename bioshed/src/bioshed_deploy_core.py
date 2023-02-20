@@ -169,13 +169,12 @@ def bioshed_deploy_core_aws_public( args ):
         variable "vpc_subnet_count" {
           type        = number
           description = "Number of private or public subnets to create in VPC"
-          default     = 1
-        }
-
-        """
-        )
+        """)
+        f.write('  default     = {}'.format(str(len(CIDR_BLOCKS))))
         f.write(
         """
+        }
+
         variable "public_ecs_batch_service_role_policy_arns" {
           type        = list(string)
           description = "IAM Role Policies for Batch to be able to start instances"
@@ -188,18 +187,18 @@ def bioshed_deploy_core_aws_public( args ):
           default     = ["arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess", "arn:aws:iam::aws:policy/AmazonElasticContainerRegistryPublicReadOnly"]
         }
 
-        # use public ID later
+        # use public ID later (or make this AMI public)
         variable "batch_ami_id_tiny" {
           type        = string
           description = "AMI for Batch EC2 instances with 100GB storage"
           default     = "ami-08576a4860f85fa6d"
         }
 
-        # use aws_key_pair.deployer later
+        # default used to be "npi_aws_batch" for testing
         variable "batch_ec2_key" {
           type        = string
           description = "EC2 key pair for Batch instances"
-          default     = "npi_aws_batch"
+          default     = data.aws_key_pair.deployer
         }
 
         """

@@ -57,8 +57,17 @@ def bioshed_cli_main( args ):
         elif cmd == 'setup' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) > 2:
                 cloud_provider = args[2].lower()
+                cmd_options = getCommandOptions( args[3:] )
+                if 'help' in cmd_options or 'h' in cmd_options:
+                    print('This sets up this device to connect to your AWS environment. Examples:\n')
+                    print('\t$ bioshed setup aws')
+                    print('\t$ bioshed setup aws --keyfile ~/.ssh/mykey.pub\n')
+                    return
                 if cloud_provider in ['aws', 'amazon']:
-                    bioshed_init.bioshed_setup(dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE))
+                    bioshed_setup_args = dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE)
+                    if 'keyfile' in cmd_options:
+                        bioshed_setup_args['apikeyfile'] = cmd_options['keyfile']
+                    bioshed_init.bioshed_setup(bioshed_setup_args)
                 else:
                     print('Provider {} currently not supported.'.format(cloud_provider))
             else:
@@ -310,6 +319,28 @@ def parseRunCommand( cmd, args ):
         print('NOTE: If you get an AWS credentials error, you may need to specify an AWS ENV file: --aws-env-file <.ENV>')
         docker_utils.run_container_local( dict(name=module, args=args, dockerargs=dockerargs, registry=registry, tag=ctag, need_user=need_user))
     return 0
+
+
+def getCommandOptions( _args ):
+    """ Given a list of optional arguments, parses into a dictionary.
+
+    Example: --keyfile mykey.pub --dryrun
+    Output: {'keyfile': 'mykey.pub', 'dryrun': ''}
+
+    [TODO] type-checking and testing
+    """
+    out_args = {}
+    while len(_args) > 0:
+        if len(_args) > 1 and _args[0].startswith('--') and not _args[1].startswith('--'):
+            out_args[_args[0][2:]] = _args[1]
+            _args = _args[2:]
+        elif _args[0].startswith('--') and (len(_args)==1 or _args[1].startswith('--')):
+            out_args[_args[0][2:]] = ''
+            _args = _args[1:]
+        else:
+            _args = _args[1:]
+    return out_args
+
 
 
 def print_help_menu():

@@ -123,11 +123,12 @@ def bioshed_setup( args ):
             api_key_file = generate_api_key( dict(cloud=cloud_provider, configfile=config_file)) if pregen_apikey_file == '' else pregen_apikey_file
             provider_file = bioshed_setup_aws( dict(initpath=init_path, configfile=config_file, providerfile=provider_file, mainfile=main_file, keyfile=api_key_file))
             env_file = write_env_file( dict(cloud=cloud_provider, initpath=init_path))
-            print('\nBioShed AWS integration setup successful! To setup the core AWS resources, now type:')
+            print('\nBioShed AWS integration setup successful! To setup the core AWS resources, now type:\n')
             print('\t$ bioshed deploy core')
-            print('\n Or try one of the following to test your setup:')
+            print('\n Or try one of the following to test your setup:\n')
             print('\t$ bioshed run fastqc --help')
             print('\t$ bioshed run fastqc --example')
+            print('')
     return provider_file
 
 
@@ -286,7 +287,7 @@ def bioshed_setup_aws( args ):
         with open(KEYS_FILE,'w') as f:
             f.write(
             """
-            resource "aws_key_pair" "deployer" {
+            data "aws_key_pair" "deployer" {
               key_name   = "bioshed-managed-key-for-ec2-instances"
             """
             )
