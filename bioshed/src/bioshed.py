@@ -21,7 +21,7 @@ GCP_CONFIG_FILE = ''
 PROVIDER_FILE = os.path.join(INIT_PATH, 'hs_providers.tf')
 MAIN_FILE = os.path.join(INIT_PATH, 'main.tf')
 SYSTEM_TYPE = bioshed_core_utils.detect_os()
-VALID_COMMANDS = ['init', 'setup', 'build', 'run', 'runlocal', 'deploy', 'search', 'download', 'teardown', 'keygen']
+VALID_COMMANDS = ['init', 'setup', 'connect', 'build', 'run', 'runlocal', 'deploy', 'search', 'download', 'teardown', 'keygen']
 VALID_PROVIDERS = ['aws', 'amazon', 'gcp', 'google']
 
 def bioshed_cli_entrypoint():
@@ -54,24 +54,24 @@ def bioshed_cli_main( args ):
             if 'install' in parsed_args:
                 docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
 
-        elif cmd == 'setup' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
+        elif cmd == 'connect' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) > 2:
                 cloud_provider = args[2].lower()
                 cmd_options = getCommandOptions( args[3:] )
                 if 'help' in cmd_options or 'h' in cmd_options:
                     print('This sets up this device to connect to your AWS environment. Examples:\n')
-                    print('\t$ bioshed setup aws')
-                    print('\t$ bioshed setup aws --keyfile ~/.ssh/mykey.pub\n')
+                    print('\t$ bioshed connect aws')
+                    print('\t$ bioshed connect aws --keyfile ~/.ssh/mykey.pub\n')
                     return
                 if cloud_provider in ['aws', 'amazon']:
-                    bioshed_setup_args = dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE)
+                    bioshed_connect_args = dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE)
                     if 'keyfile' in cmd_options:
-                        bioshed_setup_args['apikeyfile'] = cmd_options['keyfile']
-                    bioshed_init.bioshed_setup(bioshed_setup_args)
+                        bioshed_connect_args['apikeyfile'] = cmd_options['keyfile']
+                    bioshed_init.bioshed_connect(bioshed_connect_args)
                 else:
                     print('Provider {} currently not supported.'.format(cloud_provider))
             else:
-                print('Must specify a cloud provider - e.g., bioshed setup aws')
+                print('Must specify a cloud provider - e.g., bioshed connect aws')
 
         elif cmd == 'init':
             initialize_bioshed()
@@ -182,7 +182,7 @@ def initialize_bioshed():
         print("""
         BioShed initial install complete. Follow-up options are:
 
-        1) Type "bioshed setup aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.
+        1) Type "bioshed connect aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.
         2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.
         3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.
 
@@ -350,7 +350,7 @@ def print_help_menu():
     Specify a valid subcommand. Valid subcommands are:
 
     $ bioshed init
-    $ bioshed setup aws
+    $ bioshed connect aws
     $ bioshed deploy core aws
     $ bioshed teardown aws
     $ bioshed keygen aws
@@ -365,6 +365,8 @@ def print_help_menu():
     $ bioshed download encode
     $ bioshed download tcga
     $ bioshed download gdc
+    
+    You can add --help option to each subcommand for specific help.
     
     """)
 
