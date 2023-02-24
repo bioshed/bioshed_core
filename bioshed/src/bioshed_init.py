@@ -484,7 +484,7 @@ def generate_api_key( args ):
 def get_public_key( args ):
     """ Gets public key for a given key file specified within config file.
 
-    configfile: config file where key file name is stored. 
+    configfile: config file where key file  name is stored. 
                 Usually there will be a pair of files <KEYFILE> and <KEYFILE.pub> corresponding to the private and public keys, respectively.
     ---
     pubkey: public key

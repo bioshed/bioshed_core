@@ -74,11 +74,15 @@ def bioshed_cli_main( args ):
                 print('Must specify a cloud provider - e.g., bioshed connect aws')
 
         elif cmd == 'init':
+            optional_args = getCommandOptions(args[2:])
+            if 'help' in optional_args:
+                print_help_menu('init')
+                return
             initialize_bioshed()
 
         elif cmd == 'deploy' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
-            if len(args) < 4:
-                print('Must specify a resource to deploy - e.g., bioshed deploy aws core\n')
+            if len(args) < 4 or '--help' in args:
+                print_help_menu('deploy')
                 return
             # resource to deploy - e.g., core
             deploy_resource = args[2]
@@ -343,31 +347,44 @@ def getCommandOptions( _args ):
 
 
 
-def print_help_menu():
-    print("""
-    Welcome to Bioshed, an open-source bioinformatics infrastructure toolkit.
+def print_help_menu( which_menu = 'base' ):
 
-    Specify a valid subcommand. Valid subcommands are:
+    if which_menu == 'base':
+        print("""
+        Welcome to Bioshed, an open-source bioinformatics infrastructure toolkit.
 
-    $ bioshed init
-    $ bioshed connect aws
-    $ bioshed deploy core aws
-    $ bioshed teardown aws
-    $ bioshed keygen aws
-    
-    $ bioshed run
-    $ bioshed build
-    
-    $ bioshed search encode
-    $ bioshed search tcga
-    $ bioshed search gdc
-    
-    $ bioshed download encode
-    $ bioshed download tcga
-    $ bioshed download gdc
-    
-    You can add --help option to each subcommand for specific help.
-    
-    """)
+        Specify a valid subcommand. Valid subcommands are:
 
+        $ bioshed init
+        $ bioshed connect aws
+        $ bioshed deploy core aws
+        $ bioshed teardown aws
+        $ bioshed keygen aws
+        
+        $ bioshed run
+        $ bioshed build
+        
+        $ bioshed search encode
+        $ bioshed search tcga
+        $ bioshed search gdc
+        
+        $ bioshed download encode
+        $ bioshed download tcga
+        $ bioshed download gdc
+        
+        You can add --help option to each subcommand for specific help.
+        
+        """)
+
+    elif which_menu == 'init':
+        print("""
+        To initialize Bioshed on this device, just type "bioshed init" and log into your account as instructed.
+        The necessary packages and libraries for running Bioshed will be installed on your device.
+
+        """)
+    
+    elif which_menu == 'deploy':
+        print("""
+        Must specify a resource to deploy - e.g., bioshed deploy aws core
+        """)
     return
