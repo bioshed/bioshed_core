@@ -47,21 +47,25 @@ def bioshed_cli_main( args ):
         elif cmd == 'build' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
                 print('You must specify a module to build: bioshed build <MODULE> <ARGS>')
+                print('For help: "bioshed build --help"')
                 return
             module = args[2].strip()
-            parsed_args = bioshed_core_utils.parse_build_args( args[3:] )
-            print('MODULE: '+str(module))
-            if 'install' in parsed_args:
-                docker_utils.build_container( dict(name=module, requirements=parsed_args.install, codebase=parsed_args.codebase ))
+            build_args = getCommandOptions(args[3:])
+            # parsed_args = bioshed_core_utils.parse_build_args( args[3:] )
+            if 'help' in build_args or 'install' not in build_args:
+                print_help_menu('build')
+            elif 'install' in build_args:
+                print('Building container for {}.'.format(str(module)))
+                if 'codebase' not in build_args:
+                    build_args['codebase'] = 'python'
+                docker_utils.build_container( dict(name=module, requirements=build_args['install'], codebase=build_args['codebase'] ))
 
         elif cmd == 'connect' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) > 2:
                 cloud_provider = args[2].lower()
                 cmd_options = getCommandOptions( args[3:] )
                 if 'help' in cmd_options or 'h' in cmd_options:
-                    print('This sets up this device to connect to your AWS environment. Examples:\n')
-                    print('\t$ bioshed connect aws')
-                    print('\t$ bioshed connect aws --keyfile ~/.ssh/mykey.pub\n')
+                    print_help_menu('connect')
                     return
                 if cloud_provider in ['aws', 'amazon']:
                     bioshed_connect_args = dict( cloud=cloud_provider, initpath=INIT_PATH, configfile=AWS_CONFIG_FILE, providerfile=PROVIDER_FILE, mainfile=MAIN_FILE)
@@ -348,7 +352,8 @@ def getCommandOptions( _args ):
 
 
 def print_help_menu( which_menu = 'base' ):
-
+    """ Various help menus depending on the command run
+    """
     if which_menu == 'base':
         print("""
         Welcome to Bioshed, an open-source bioinformatics infrastructure toolkit.
@@ -375,16 +380,27 @@ def print_help_menu( which_menu = 'base' ):
         You can add --help option to each subcommand for specific help.
         
         """)
-
     elif which_menu == 'init':
         print("""
         To initialize Bioshed on this device, just type "bioshed init" and log into your account as instructed.
         The necessary packages and libraries for running Bioshed will be installed on your device.
 
         """)
-    
     elif which_menu == 'deploy':
         print("""
         Must specify a resource to deploy - e.g., bioshed deploy aws core
+        """)
+    elif which_menu == 'connect':
+        print("""
+        This sets up this device to connect to your AWS environment. Examples:
+
+            $ bioshed connect aws
+            $ bioshed connect aws --keyfile ~/.ssh/mykey.pub
+        """)
+    elif which_menu == 'build':
+        print("""
+        Build a container image given a requirements.txt file and a specified codebase image (default: python)
+
+        EXAMPLE: bioshed build bowtie --install bowtie.requirements.txt --codebase python
         """)
     return
