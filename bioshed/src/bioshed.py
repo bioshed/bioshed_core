@@ -107,13 +107,13 @@ def bioshed_cli_main( args ):
 
         elif cmd == 'search' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
-                print('Specify a system or repository to search and type your search terms. Examples:')
-                print('\tbioshed search encode <SEARCH_TERMS>')
-                print('\tbioshed search gdc <SEARCH_TERMS>')
-                print('\tbioshed search tcga <SEARCH_TERMS>')
-                print('\tbioshed search ncbi <SEARCH_TERMS>')
+                print_help_menu('search')
                 return
-            if str(args[2]).lower() == 'encode':
+            optional_args = getCommandOptions(args[3:])
+            if 'help' in optional_args:
+                print_help_menu('search')
+                return
+            elif str(args[2]).lower() == 'encode':
                 search_terms = str(' '.join(args[3:])).strip()
                 print('Searching ENCODE for: {}'.format(search_terms))
                 atlas_encode_utils.search_encode( dict(searchterms=search_terms))
@@ -130,13 +130,13 @@ def bioshed_cli_main( args ):
                 
         elif cmd == 'download' and bioshed_init.userExists( dict(quick_utils.loadJSON(AWS_CONFIG_FILE)).get("login", "") ):
             if len(args) < 3:
-                print('Specify a system or repository to download files from. Examples:')
-                print('\tbioshed download encode')
-                print('\tbioshed download gdc')
-                print('\tbioshed download tcga')
-                print('\tbioshed download ncbi')
+                print_help_menu('download')
                 return
-            if str(args[2]).lower() == 'encode':
+            optional_args = getCommandOptions(args[3:])
+            if 'help' in optional_args:
+                print_help_menu('search')
+                return
+            elif str(args[2]).lower() == 'encode':
                 atlas_encode_utils.download_encode( dict(downloadstr=str(' '.join(args[3:])).strip()))
             elif str(args[2]).lower() in ['tcga', 'gdc']:
                 atlas_tcga_utils.download_gdc( dict(downloadstr=str(' '.join(args[3:])).strip()))
@@ -402,5 +402,15 @@ def print_help_menu( which_menu = 'base' ):
         Build a container image given a requirements.txt file and a specified codebase image (default: python)
 
         EXAMPLE: bioshed build bowtie --install bowtie.requirements.txt --codebase python
+        """)
+    elif which_menu in ['search', 'download']:
+        print("""
+        Search and download datasets from public sequencing repositories.
+
+        Specify a system or repository to search and type your search terms. Examples:
+            bioshed search encode <SEARCH_TERMS>
+            bioshed search gdc <SEARCH_TERMS>
+            bioshed search tcga <SEARCH_TERMS>
+            bioshed search ncbi <SEARCH_TERMS>
         """)
     return
