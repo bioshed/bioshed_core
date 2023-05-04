@@ -564,13 +564,16 @@ def bioshed_run_help():
             $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
 
         Using local storage:
-            $ bioshed run zcat my.fastq.gz out::local
-            $ bioshed run fastqc file.fastq.gz out::local
-            $ bioshed run --inputdir /home/ cat README.txt
+            $ bioshed run --local zcat my.fastq.gz out::local
+            $ bioshed run --local fastqc file.fastq.gz
+            $ bioshed run --local --inputdir /home/ cat README.txt
 
         Using local and cloud (hybrid) storage:
             $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
             $ bioshed run fastqc s3://bioshed-examples/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz out::local
+
+        Immediate output of the latest run is found in "bioshed.run.out" (note this file can be overwritten)
+        Outputs are saved in files "program.*.log" and run logs are saved in files "run.*.log"
 
     ------------------------------------------------------------
     HELP
