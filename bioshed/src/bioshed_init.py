@@ -564,8 +564,8 @@ def bioshed_run_help():
             $ bioshed run STAR --genomeDir s3://genomes/hg38_STAR_index/ --readFilesIn s3://fastqs/my.fastq.gz out::s3://alignments/
 
         Using local storage:
-            $ bioshed run --local zcat my.fastq.gz out::local
-            $ bioshed run --local fastqc file.fastq.gz
+            $ bioshed run --local zcat my.fastq.gz
+            $ bioshed run --local fastqc file.fastq.gz out::local
             $ bioshed run --local --inputdir /home/ cat README.txt
 
         Using local and cloud (hybrid) storage:
