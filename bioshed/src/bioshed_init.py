@@ -572,8 +572,8 @@ def bioshed_run_help():
             $ bioshed run bedtools merge s3://folder1/test.bed out::/data/
             $ bioshed run fastqc s3://bioshed-examples/fastq/rnaseq_mouse_test_tiny1_R1.fastq.gz out::local
 
-        Immediate output of the latest run is found in "bioshed.run.out" (note this file can be overwritten)
-        Outputs are saved in files "program.*.log" and run logs are saved in files "run.*.log"
+        Immediate command-line output of the latest run is found in "bioshed.run.out" (note this file can be overwritten)
+        Command-line outputs are saved in files "program.*.log" and run logs are saved in files "run.*.log"
 
     ------------------------------------------------------------
     HELP
