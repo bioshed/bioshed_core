@@ -193,11 +193,11 @@ def initialize_bioshed():
         1) Type "bioshed connect aws" and then "bioshed deploy core" to setup AWS infrastructure for Bioshed.
         2) Type "bioshed build <module> <args>" to build a new bioinformatics application module.
         3) Type "bioshed search encode/ncbi/local/etc..." to search a system or repository for datasets.
-        4) Type "bioshed run --local <module> <args>" to run a bioinformatics application locally.
+        4) Type "bioshed run --local <module> <args>" to run a bioinformatics application locally (make sure Docker is running on your system)
 
         For each of these commands, you can get help:
         $ bioshed <command> --help
-        
+
         """)
     return
 
